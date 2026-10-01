@@ -8,7 +8,6 @@ import { EsgProvider, useEsg } from './context/EsgContext';
 import { Header } from './components/common/Header';
 import { Sidebar } from './components/common/Sidebar';
 import { GuidedTour } from './components/common/GuidedTour';
-import { GatewayModal } from './components/common/GatewayModal';
 import { LoginModal } from './components/common/LoginModal';
 
 // Modules
@@ -34,7 +33,6 @@ const MainLayout: React.FC = () => {
         <LandingView />
         <GuidedTour />
         <LoginModal />
-        <GatewayModal />
       </div>
     );
   }
@@ -85,10 +83,9 @@ const MainLayout: React.FC = () => {
         </main>
       </div>
 
-      {/* Interactive Tour, Login & Gateway Modals */}
+      {/* Interactive Tour & Login Modal */}
       <GuidedTour />
       <LoginModal />
-      <GatewayModal />
     </div>
   );
 };

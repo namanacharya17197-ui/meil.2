@@ -44,7 +44,7 @@ export const Sidebar: React.FC = () => {
     setActiveSubtab,
     approvals,
     anomalies,
-    setIsGatewayOpen,
+    setIsLoginModalOpen,
   } = useEsg();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -137,7 +137,7 @@ export const Sidebar: React.FC = () => {
     setActiveModule(moduleId);
     setActiveSubtab(subtabId);
     if (subtabId === 'gateway') {
-      setIsGatewayOpen(true);
+      setIsLoginModalOpen(true);
     }
   };
 

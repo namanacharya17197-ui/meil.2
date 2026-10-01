@@ -46,7 +46,7 @@ export const Header: React.FC = () => {
     setIsTourOpen,
     setActiveModule,
     setActiveSubtab,
-    setIsGatewayOpen,
+    setIsLoginModalOpen,
     anomalies,
     currentUser,
     logout,
@@ -422,7 +422,7 @@ export const Header: React.FC = () => {
 
               <button
                 onClick={() => {
-                  setIsGatewayOpen(true);
+                  setIsLoginModalOpen(true);
                   setProfileDropdownOpen(false);
                 }}
                 className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left transition-colors"
