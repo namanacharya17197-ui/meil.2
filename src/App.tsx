@@ -9,6 +9,7 @@ import { Header } from './components/common/Header';
 import { Sidebar } from './components/common/Sidebar';
 import { GuidedTour } from './components/common/GuidedTour';
 import { GatewayModal } from './components/common/GatewayModal';
+import { LoginModal } from './components/common/LoginModal';
 
 // Modules
 import { DashboardView } from './components/modules/overview/DashboardView';
@@ -24,14 +25,15 @@ import { AiCopilotView } from './components/modules/copilot/AiCopilotView';
 import { AdminMastersView } from './components/modules/admin/AdminMastersView';
 
 const MainLayout: React.FC = () => {
-  const { activeModule, activeSubtab } = useEsg();
+  const { activeModule, activeSubtab, isAuthenticated } = useEsg();
 
-  // If user is viewing the Public Corporate Landing Portal, render it full width
-  if (activeModule === 'overview' && activeSubtab === 'hero-landing') {
+  // Landing page comes first when opening the app, or whenever user selects hero-landing or is unauthenticated
+  if (!isAuthenticated || (activeModule === 'overview' && activeSubtab === 'hero-landing')) {
     return (
       <div className="min-h-screen bg-[#f8faf9] text-[#191c1c] flex flex-col font-sans">
         <LandingView />
         <GuidedTour />
+        <LoginModal />
         <GatewayModal />
       </div>
     );
@@ -83,8 +85,9 @@ const MainLayout: React.FC = () => {
         </main>
       </div>
 
-      {/* Interactive Tour & Gateway Modal */}
+      {/* Interactive Tour, Login & Gateway Modals */}
       <GuidedTour />
+      <LoginModal />
       <GatewayModal />
     </div>
   );

@@ -55,6 +55,19 @@ interface EsgContextType {
   setSearchFilter: (term: string) => void;
   isGatewayOpen: boolean;
   setIsGatewayOpen: (open: boolean) => void;
+  // Authentication & Access Controls
+  isAuthenticated: boolean;
+  setIsAuthenticated: (auth: boolean) => void;
+  isLoginModalOpen: boolean;
+  setIsLoginModalOpen: (open: boolean) => void;
+  currentUser: {
+    name: string;
+    email: string;
+    role: UserRole;
+    title: string;
+  } | null;
+  login: (email?: string, password?: string, role?: UserRole) => boolean;
+  logout: () => void;
   // Computed aggregates
   activeSite: InfrastructureSite | null;
   aggregatedMetrics: {
@@ -80,7 +93,7 @@ export const EsgProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedCycle, setSelectedCycle] = useState<ReportingCycle>('FY 2024-25 (Active)');
   const [currentRole, setCurrentRole] = useState<UserRole>('Group ESG Admin');
   const [activeModule, setActiveModule] = useState<string>('overview');
-  const [activeSubtab, setActiveSubtab] = useState<string>('dashboard');
+  const [activeSubtab, setActiveSubtab] = useState<string>('hero-landing');
   const [sites, setSites] = useState<InfrastructureSite[]>(INFRASTRUCTURE_SITES);
   const [emissionFactors, setEmissionFactors] = useState<EmissionFactor[]>(EMISSION_FACTORS);
   const [brsrIndicators, setBrsrIndicators] = useState<BRSRIndicator[]>(BRSR_CORE_INDICATORS);
@@ -90,6 +103,26 @@ export const EsgProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isTourOpen, setIsTourOpen] = useState<boolean>(false);
   const [searchFilter, setSearchFilter] = useState<string>('');
   const [isGatewayOpen, setIsGatewayOpen] = useState<boolean>(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem('meil_esg_authenticated') === 'true';
+  });
+  const [currentUser, setCurrentUser] = useState<{
+    name: string;
+    email: string;
+    role: UserRole;
+    title: string;
+  } | null>(() => {
+    const saved = sessionStorage.getItem('meil_esg_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
 
   const activeSite = useMemo(() => {
     if (selectedSiteId === 'all') return null;
@@ -223,6 +256,88 @@ export const EsgProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const login = (email?: string, _password?: string, role?: UserRole): boolean => {
+    const userRole = role || 'Group ESG Admin';
+    const userName =
+      userRole === 'Group ESG Admin'
+        ? 'K. V. Rao'
+        : userRole === 'Subsidiary Approver'
+        ? 'P. Sharma'
+        : userRole === 'Business Unit Reviewer'
+        ? 'A. Mukherjee'
+        : userRole === 'Project Data Entry User'
+        ? 'R. Verma'
+        : userRole === 'Independent Auditor (ISAE 3000)'
+        ? 'S. Narayanan'
+        : 'Dr. B. Reddy';
+
+    const userTitle =
+      userRole === 'Group ESG Admin'
+        ? 'Chief Sustainability Officer'
+        : userRole === 'Subsidiary Approver'
+        ? 'VP - Infrastructure Projects'
+        : userRole === 'Business Unit Reviewer'
+        ? 'General Manager - ESG Quality'
+        : userRole === 'Project Data Entry User'
+        ? 'Senior Site Engineer'
+        : userRole === 'Independent Auditor (ISAE 3000)'
+        ? 'Lead ESG Assurance Partner'
+        : 'Independent Board Director';
+
+    const userObj = {
+      name: userName,
+      email:
+        email ||
+        (userRole === 'Group ESG Admin'
+          ? 'cso@meilgroup.com'
+          : `${userRole.toLowerCase().replace(/[^a-z0-9]/g, '')}@meilgroup.com`),
+      role: userRole,
+      title: userTitle,
+    };
+
+    setIsAuthenticated(true);
+    setCurrentUser(userObj);
+    setCurrentRole(userRole);
+    sessionStorage.setItem('meil_esg_authenticated', 'true');
+    sessionStorage.setItem('meil_esg_user', JSON.stringify(userObj));
+    setIsLoginModalOpen(false);
+    setIsGatewayOpen(false);
+    setActiveModule('overview');
+    setActiveSubtab('dashboard');
+
+    addAuditLog({
+      user: userName,
+      role: userRole,
+      action: 'APPROVE',
+      entity: 'Enterprise Single Sign-On',
+      field: 'User Session Authentication',
+      oldValue: 'Unauthenticated / Public Landing',
+      newValue: `Authenticated as ${userName} (${userRole})`,
+    });
+
+    return true;
+  };
+
+  const logout = () => {
+    if (currentUser) {
+      addAuditLog({
+        user: currentUser.name,
+        role: currentUser.role,
+        action: 'UPDATE',
+        entity: 'Enterprise Single Sign-On',
+        field: 'Session Termination',
+        oldValue: `Active session: ${currentUser.email}`,
+        newValue: 'Logged out / Returned to Public Landing',
+      });
+    }
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    sessionStorage.removeItem('meil_esg_authenticated');
+    sessionStorage.removeItem('meil_esg_user');
+    setActiveModule('overview');
+    setActiveSubtab('hero-landing');
+  };
+
   return (
     <EsgContext.Provider
       value={{
@@ -254,6 +369,13 @@ export const EsgProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSearchFilter,
         isGatewayOpen,
         setIsGatewayOpen,
+        isAuthenticated,
+        setIsAuthenticated,
+        isLoginModalOpen,
+        setIsLoginModalOpen,
+        currentUser,
+        login,
+        logout,
         activeSite,
         aggregatedMetrics,
       }}

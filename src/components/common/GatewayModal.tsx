@@ -23,21 +23,12 @@ export const GatewayModal: React.FC = () => {
 
   const handleAuthenticate = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentRole(selectedRole);
-    addAuditLog({
-      user: 'K. V. Rao',
-      role: selectedRole,
-      action: 'APPROVE',
-      entity: 'Enterprise Gateway SSO',
-      field: 'Session Token / Role Assignment',
-      oldValue: `Role: ${currentRole}`,
-      newValue: `Role: ${selectedRole} (PKI Multi-Factor Validated)`,
-    });
+    login('cso@meilgroup.com', 'meil@2026', selectedRole);
     setSuccessMsg(`Session established as ${selectedRole}`);
     setTimeout(() => {
       setSuccessMsg('');
       setIsGatewayOpen(false);
-    }, 1200);
+    }, 1000);
   };
 
   return (
