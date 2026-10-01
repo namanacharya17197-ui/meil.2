@@ -1,0 +1,88 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React from 'react';
+import { EsgProvider, useEsg } from './context/EsgContext';
+import { Header } from './components/common/Header';
+import { Sidebar } from './components/common/Sidebar';
+import { GuidedTour } from './components/common/GuidedTour';
+import { GatewayModal } from './components/common/GatewayModal';
+
+// Modules
+import { DashboardView } from './components/modules/overview/DashboardView';
+import { GisMapView } from './components/modules/overview/GisMapView';
+import { SdgHeatmapView } from './components/modules/overview/SdgHeatmapView';
+import { LandingView } from './components/modules/overview/LandingView';
+
+import { OrgHierarchyView } from './components/modules/governance/OrgHierarchyView';
+import { DataCollectionView } from './components/modules/collection/DataCollectionView';
+import { AnalyticsEngineView } from './components/modules/analytics/AnalyticsEngineView';
+import { AssuranceWorkflowView } from './components/modules/assurance/AssuranceWorkflowView';
+import { AiCopilotView } from './components/modules/copilot/AiCopilotView';
+import { AdminMastersView } from './components/modules/admin/AdminMastersView';
+
+const MainLayout: React.FC = () => {
+  const { activeModule, activeSubtab } = useEsg();
+
+  const renderModuleContent = () => {
+    switch (activeModule) {
+      case 'overview':
+        if (activeSubtab === 'gis-map') return <GisMapView />;
+        if (activeSubtab === 'sdg-heatmap') return <SdgHeatmapView />;
+        if (activeSubtab === 'hero-landing') return <LandingView />;
+        return <DashboardView />;
+
+      case 'governance':
+        return <OrgHierarchyView />;
+
+      case 'collection':
+        return <DataCollectionView />;
+
+      case 'analytics':
+        return <AnalyticsEngineView />;
+
+      case 'assurance':
+        return <AssuranceWorkflowView />;
+
+      case 'copilot':
+        return <AiCopilotView />;
+
+      case 'admin':
+        return <AdminMastersView />;
+
+      default:
+        return <DashboardView />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
+      {/* Fixed Sticky Enterprise Top Bar */}
+      <Header />
+
+      {/* Main Container with Sidebar + Content */}
+      <div className="flex flex-1 pt-16">
+        <Sidebar />
+
+        {/* Content Area with dynamic left margin matching sidebar */}
+        <main className="flex-1 ml-64 p-6 transition-all duration-300 max-w-[1700px]">
+          {renderModuleContent()}
+        </main>
+      </div>
+
+      {/* Interactive Tour & Gateway Modal */}
+      <GuidedTour />
+      <GatewayModal />
+    </div>
+  );
+};
+
+export default function App() {
+  return (
+    <EsgProvider>
+      <MainLayout />
+    </EsgProvider>
+  );
+}
