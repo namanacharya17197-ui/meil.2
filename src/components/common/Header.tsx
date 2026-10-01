@@ -16,6 +16,7 @@ import {
   MapPin,
   Check,
   AlertTriangle,
+  Globe,
 } from 'lucide-react';
 
 const ROLES: UserRole[] = [
@@ -44,6 +45,7 @@ export const Header: React.FC = () => {
     sites,
     setIsTourOpen,
     setActiveModule,
+    setActiveSubtab,
     setIsGatewayOpen,
     anomalies,
   } = useEsg();
@@ -345,6 +347,19 @@ export const Header: React.FC = () => {
         >
           <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
           <span className="hidden sm:inline font-medium">AI Copilot</span>
+        </button>
+
+        {/* Public Corporate Landing Portal */}
+        <button
+          onClick={() => {
+            setActiveModule('overview');
+            setActiveSubtab('hero-landing');
+          }}
+          className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-200 transition-colors"
+          title="Open Public ESG & Impact Portal"
+        >
+          <Globe className="w-3.5 h-3.5 text-sky-400" />
+          <span>Public Portal</span>
         </button>
 
         {/* Guided Tour Trigger */}

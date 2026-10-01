@@ -26,6 +26,17 @@ import { AdminMastersView } from './components/modules/admin/AdminMastersView';
 const MainLayout: React.FC = () => {
   const { activeModule, activeSubtab } = useEsg();
 
+  // If user is viewing the Public Corporate Landing Portal, render it full width
+  if (activeModule === 'overview' && activeSubtab === 'hero-landing') {
+    return (
+      <div className="min-h-screen bg-[#f8faf9] text-[#191c1c] flex flex-col font-sans">
+        <LandingView />
+        <GuidedTour />
+        <GatewayModal />
+      </div>
+    );
+  }
+
   const renderModuleContent = () => {
     switch (activeModule) {
       case 'overview':
