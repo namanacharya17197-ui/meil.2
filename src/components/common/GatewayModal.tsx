@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 export const GatewayModal: React.FC = () => {
-  const { isGatewayOpen, setIsGatewayOpen, currentRole, setCurrentRole, addAuditLog } = useEsg();
+  const { isGatewayOpen, setIsGatewayOpen, currentRole, setCurrentRole, addAuditLog, login } = useEsg();
   const [selectedRole, setSelectedRole] = useState<UserRole>(currentRole);
   const [ssoDomain, setSsoDomain] = useState('meilgroup.com');
   const [mfaVerified, setMfaVerified] = useState(true);
