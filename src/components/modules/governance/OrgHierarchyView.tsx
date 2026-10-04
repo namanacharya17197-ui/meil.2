@@ -16,6 +16,7 @@ import {
   AlertCircle,
   FileCheck2,
 } from 'lucide-react';
+import { HierarchicalDrillDown } from './HierarchicalDrillDown';
 
 export const OrgHierarchyView: React.FC = () => {
   const {
@@ -85,11 +86,21 @@ export const OrgHierarchyView: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setActiveSubtab('drilldown')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                activeSubtab === 'drilldown' || !['org-tree', 'submission-matrix'].includes(activeSubtab)
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              Rollup Engine (~300 Sites)
+            </button>
             <button
               onClick={() => setActiveSubtab('org-tree')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                !isMatrixView
+                activeSubtab === 'org-tree'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
               }`}
@@ -99,7 +110,7 @@ export const OrgHierarchyView: React.FC = () => {
             <button
               onClick={() => setActiveSubtab('submission-matrix')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                isMatrixView
+                activeSubtab === 'submission-matrix'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
               }`}
@@ -110,7 +121,12 @@ export const OrgHierarchyView: React.FC = () => {
         </div>
       </div>
 
-      {isMatrixView ? (
+      {/* FEATURE 2: HIERARCHICAL DRILL-DOWN & ROLLUP ENGINE */}
+      {(activeSubtab === 'drilldown' || !['org-tree', 'submission-matrix'].includes(activeSubtab)) && (
+        <HierarchicalDrillDown />
+      )}
+
+      {activeSubtab === 'submission-matrix' && (
         /* SUBMISSION MATRIX VIEW */
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
@@ -225,7 +241,9 @@ export const OrgHierarchyView: React.FC = () => {
             </table>
           </div>
         </div>
-      ) : (
+      )}
+
+      {activeSubtab === 'org-tree' && (
         /* HIERARCHY TREE VIEW */
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
           {/* Level 0: Group Apex */}

@@ -18,6 +18,7 @@ import {
   Droplets,
   HardHat,
 } from 'lucide-react';
+import { CustomAnalyticsOutlierDashboard } from './CustomAnalyticsOutlierDashboard';
 
 export const AnalyticsEngineView: React.FC = () => {
   const {
@@ -106,6 +107,16 @@ export const AnalyticsEngineView: React.FC = () => {
           {/* Subtab Segmented Switcher */}
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs overflow-x-auto">
             <button
+              onClick={() => setActiveSubtab('outlier-analytics')}
+              className={`px-3 py-1.5 rounded-md font-semibold transition-colors shrink-0 ${
+                activeSubtab === 'outlier-analytics' || !['emission-engine', 'brsr-attributes', 'drilldown', 'anomaly-radar'].includes(activeSubtab)
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Analytics & Outlier Radar
+            </button>
+            <button
               onClick={() => setActiveSubtab('emission-engine')}
               className={`px-3 py-1.5 rounded-md font-medium transition-colors shrink-0 ${
                 activeSubtab === 'emission-engine'
@@ -149,6 +160,11 @@ export const AnalyticsEngineView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* FEATURE 5: CUSTOM ANALYTICS, INTENSITY BENCHMARKING & OUTLIER DETECTION */}
+      {(activeSubtab === 'outlier-analytics' || !['emission-engine', 'brsr-attributes', 'drilldown', 'anomaly-radar'].includes(activeSubtab)) && (
+        <CustomAnalyticsOutlierDashboard />
+      )}
 
       {/* 1. EMISSION ENGINE & INTERACTIVE CALCULATOR */}
       {activeSubtab === 'emission-engine' && (

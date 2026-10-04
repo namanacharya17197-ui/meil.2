@@ -277,3 +277,114 @@ export async function fetchEmissionFactorsFromDb(): Promise<EmissionFactor[]> {
     return EMISSION_FACTORS;
   }
 }
+
+// ==============================================================================
+// 6. EMISSIONS LOG & EVIDENCE CLOUD OPERATIONS
+// ==============================================================================
+export async function syncEmissionLogToCloud(log: {
+  site_id: string;
+  reporting_month_year: string;
+  scope_type: 'Scope 1' | 'Scope 2' | 'Scope 3';
+  activity_category: string;
+  activity_quantity: number;
+  unit: string;
+  emission_factor: number;
+  co2e_metric_tonnes: number;
+  status?: string;
+  facility?: string;
+  invoice_no?: string;
+  notes?: string;
+}) {
+  if (!supabase) return { success: false, mode: 'local' };
+
+  try {
+    const { data, error } = await supabase
+      .from('emissions_log')
+      .insert([log])
+      .select();
+
+    if (error) {
+      console.warn('Supabase emissions_log insert notice:', error.message);
+      return { success: false, error: error.message };
+    }
+    return { success: true, data: data?.[0] };
+  } catch (err: any) {
+    return { success: false, error: err?.message || err };
+  }
+}
+
+export async function syncEvidenceToCloud(evidence: {
+  emission_log_id: string;
+  file_url: string;
+  file_name: string;
+  document_type: string;
+  uploaded_by: string;
+  verification_hash?: string;
+}) {
+  if (!supabase) return { success: false, mode: 'local' };
+
+  try {
+    const { data, error } = await supabase
+      .from('evidence_attachments')
+      .insert([evidence])
+      .select();
+
+    if (error) {
+      console.warn('Supabase evidence_attachments notice:', error.message);
+      return { success: false, error: error.message };
+    }
+    return { success: true, data: data?.[0] };
+  } catch (err: any) {
+    return { success: false, error: err?.message || err };
+  }
+}
+
+export async function fetchEmissionsLogsFromDb(siteId?: string) {
+  if (!supabase) return [];
+
+  try {
+    let query = supabase.from('emissions_log').select(`
+      *,
+      evidence_attachments (*)
+    `).order('created_at', { ascending: false });
+
+    if (siteId && siteId !== 'all') {
+      query = query.eq('site_id', siteId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.warn('Falling back to local cache for emissions logs:', err);
+    return [];
+  }
+}
+
+export async function syncAuditTrailToCloud(entry: {
+  record_id: string;
+  action: string;
+  actor_id: string;
+  role: string;
+  previous_value?: string;
+  new_value?: string;
+  comments?: string;
+  verified_hash?: string;
+}) {
+  if (!supabase) return { success: false, mode: 'local' };
+
+  try {
+    const { data, error } = await supabase
+      .from('audit_trails')
+      .insert([entry])
+      .select();
+
+    if (error) {
+      console.warn('Supabase audit_trails notice:', error.message);
+      return { success: false, error: error.message };
+    }
+    return { success: true, data: data?.[0] };
+  } catch (err: any) {
+    return { success: false, error: err?.message || err };
+  }
+}

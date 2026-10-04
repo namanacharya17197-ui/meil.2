@@ -8,6 +8,11 @@ import {
   AuditTrailEntry,
   ApprovalItem,
   AnomalyItem,
+  EmissionsLog,
+  EvidenceAttachment,
+  AuditTrailRecord,
+  EmissionLogStatus,
+  GroupNode,
 } from '../types/esg';
 import {
   INFRASTRUCTURE_SITES,
@@ -16,7 +21,16 @@ import {
   INITIAL_AUDIT_TRAIL,
   INITIAL_APPROVALS,
   INITIAL_ANOMALIES,
+  INITIAL_EMISSIONS_LOGS,
+  INITIAL_EVIDENCE_ATTACHMENTS,
+  INITIAL_AUDIT_TRAIL_RECORDS,
+  ORGANIZATION_HIERARCHY,
 } from '../data/mockData';
+import {
+  syncEmissionLogToCloud,
+  syncEvidenceToCloud,
+  syncAuditTrailToCloud,
+} from '../lib/supabase';
 
 interface EsgContextType {
   selectedSiteId: string;
@@ -84,6 +98,17 @@ interface EsgContextType {
     approvedCount: number;
     pendingCount: number;
   };
+  // Enterprise Emissions Logging & Evidence
+  emissionsLogs: EmissionsLog[];
+  setEmissionsLogs: React.Dispatch<React.SetStateAction<EmissionsLog[]>>;
+  addEmissionsLog: (entry: Omit<EmissionsLog, 'id'>) => Promise<EmissionsLog>;
+  updateEmissionsLogStatus: (id: string, status: EmissionLogStatus, comments?: string) => Promise<void>;
+  evidenceAttachments: EvidenceAttachment[];
+  setEvidenceAttachments: React.Dispatch<React.SetStateAction<EvidenceAttachment[]>>;
+  addEvidenceAttachment: (att: Omit<EvidenceAttachment, 'id' | 'uploadedAt'> & { uploadedAt?: string }) => Promise<EvidenceAttachment>;
+  auditTrailRecords: AuditTrailRecord[];
+  addAuditTrailRecord: (record: Omit<AuditTrailRecord, 'id' | 'timestamp'>) => Promise<AuditTrailRecord>;
+  organizationHierarchy: GroupNode;
 }
 
 const EsgContext = createContext<EsgContextType | undefined>(undefined);
@@ -123,6 +148,137 @@ export const EsgProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     return null;
   });
+
+  const [emissionsLogs, setEmissionsLogs] = useState<EmissionsLog[]>(INITIAL_EMISSIONS_LOGS);
+  const [evidenceAttachments, setEvidenceAttachments] = useState<EvidenceAttachment[]>(INITIAL_EVIDENCE_ATTACHMENTS);
+  const [auditTrailRecords, setAuditTrailRecords] = useState<AuditTrailRecord[]>(INITIAL_AUDIT_TRAIL_RECORDS);
+  const organizationHierarchy = ORGANIZATION_HIERARCHY;
+
+  const addAuditTrailRecord = async (record: Omit<AuditTrailRecord, 'id' | 'timestamp'>): Promise<AuditTrailRecord> => {
+    const newRec: AuditTrailRecord = {
+      id: `rec-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      ...record,
+    };
+    setAuditTrailRecords((prev) => [newRec, ...prev]);
+    try {
+      await syncAuditTrailToCloud({
+        record_id: newRec.recordId,
+        action: newRec.action,
+        actor_id: newRec.actorId,
+        role: newRec.role,
+        previous_value: newRec.previousValue,
+        new_value: newRec.newValue,
+        comments: newRec.comments,
+        verified_hash: newRec.verifiedHash,
+      });
+    } catch (e) {
+      console.warn('Cloud audit trail sync warning:', e);
+    }
+    return newRec;
+  };
+
+  const addEmissionsLog = async (entry: Omit<EmissionsLog, 'id'>): Promise<EmissionsLog> => {
+    const newLog: EmissionsLog = {
+      id: `em-log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      ...entry,
+    };
+    setEmissionsLogs((prev) => [newLog, ...prev]);
+    try {
+      await syncEmissionLogToCloud({
+        site_id: newLog.siteId,
+        reporting_month_year: newLog.reportingMonthYear,
+        scope_type: newLog.scopeType,
+        activity_category: newLog.activityCategory,
+        activity_quantity: newLog.activityQuantity,
+        unit: newLog.unit,
+        emission_factor: newLog.emissionFactor,
+        co2e_metric_tonnes: newLog.co2eMetricTonnes,
+        status: newLog.status,
+        facility: newLog.facility,
+        invoice_no: newLog.invoiceNo,
+        notes: newLog.notes,
+      });
+    } catch (e) {
+      console.warn('Cloud emission log sync warning:', e);
+    }
+    await addAuditTrailRecord({
+      recordId: newLog.id,
+      action: 'CREATE',
+      actorId: currentUser?.email || 'operator@meilgroup.com',
+      role: currentRole,
+      previousValue: 'None',
+      newValue: `${newLog.activityQuantity} ${newLog.unit} (${newLog.co2eMetricTonnes} tCO2e)`,
+      comments: `New ${newLog.scopeType} emission entry submitted for ${newLog.siteName || newLog.siteId}`,
+    });
+    return newLog;
+  };
+
+  const updateEmissionsLogStatus = async (id: string, status: EmissionLogStatus, comments?: string): Promise<void> => {
+    const existing = emissionsLogs.find((l) => l.id === id);
+    if (!existing) return;
+    const oldStatus = existing.status;
+    const updated: EmissionsLog = {
+      ...existing,
+      status,
+      verifiedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      verifiedBy: currentUser?.name || 'Auditor',
+      auditorComments: comments,
+    };
+    setEmissionsLogs((prev) => prev.map((l) => (l.id === id ? updated : l)));
+    try {
+      await syncEmissionLogToCloud({
+        site_id: updated.siteId,
+        reporting_month_year: updated.reportingMonthYear,
+        scope_type: updated.scopeType,
+        activity_category: updated.activityCategory,
+        activity_quantity: updated.activityQuantity,
+        unit: updated.unit,
+        emission_factor: updated.emissionFactor,
+        co2e_metric_tonnes: updated.co2eMetricTonnes,
+        status: updated.status,
+        facility: updated.facility,
+        invoice_no: updated.invoiceNo,
+        notes: updated.notes,
+      });
+    } catch (e) {
+      console.warn('Cloud emission log status sync warning:', e);
+    }
+    await addAuditTrailRecord({
+      recordId: id,
+      action: status === 'Approved' ? 'VERIFY' : status === 'Audited' ? 'APPROVE' : status === 'Flagged' ? 'FLAG' : 'UPDATE',
+      actorId: currentUser?.email || 'auditor@meilgroup.com',
+      role: currentRole,
+      previousValue: oldStatus,
+      newValue: status,
+      comments: comments || `Status transitioned from ${oldStatus} to ${status}`,
+    });
+  };
+
+  const addEvidenceAttachment = async (
+    att: Omit<EvidenceAttachment, 'id' | 'uploadedAt'> & { uploadedAt?: string }
+  ): Promise<EvidenceAttachment> => {
+    const newAtt: EvidenceAttachment = {
+      id: `ev-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      uploadedAt: att.uploadedAt || new Date().toISOString().replace('T', ' ').substring(0, 16),
+      ...att,
+    };
+    setEvidenceAttachments((prev) => [newAtt, ...prev]);
+    try {
+      await syncEvidenceToCloud({
+        emission_log_id: newAtt.emissionLogId,
+        file_url: newAtt.fileUrl,
+        file_name: newAtt.fileName,
+        document_type: newAtt.documentType,
+        uploaded_by: newAtt.uploadedBy,
+        verification_hash: newAtt.verificationHash,
+      });
+    } catch (e) {
+      console.warn('Cloud evidence attachment sync warning:', e);
+    }
+    return newAtt;
+  };
+
 
   const activeSite = useMemo(() => {
     if (selectedSiteId === 'all') return null;
@@ -378,6 +534,16 @@ export const EsgProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         logout,
         activeSite,
         aggregatedMetrics,
+        emissionsLogs,
+        setEmissionsLogs,
+        addEmissionsLog,
+        updateEmissionsLogStatus,
+        evidenceAttachments,
+        setEvidenceAttachments,
+        addEvidenceAttachment,
+        auditTrailRecords,
+        addAuditTrailRecord,
+        organizationHierarchy,
       }}
     >
       {children}

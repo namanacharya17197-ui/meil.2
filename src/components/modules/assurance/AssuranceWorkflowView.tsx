@@ -19,6 +19,8 @@ import {
   Search,
   Filter,
 } from 'lucide-react';
+import { AuditorVerificationPortal } from './AuditorVerificationPortal';
+import { BrsrPrinciple6Report } from './BrsrPrinciple6Report';
 
 export const AssuranceWorkflowView: React.FC = () => {
   const {
@@ -139,7 +141,27 @@ export const AssuranceWorkflowView: React.FC = () => {
           </div>
 
           {/* Subtab Segmented Switcher */}
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs flex-wrap">
+            <button
+              onClick={() => setActiveSubtab('auditor-portal')}
+              className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
+                activeSubtab === 'auditor-portal' || !['principle-6-report', 'approvals', 'audit-trail', 'report-generator'].includes(activeSubtab)
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Auditor Verification Portal
+            </button>
+            <button
+              onClick={() => setActiveSubtab('principle-6-report')}
+              className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
+                activeSubtab === 'principle-6-report'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              SEBI BRSR Section C (P6)
+            </button>
             <button
               onClick={() => setActiveSubtab('approvals')}
               className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
@@ -168,11 +190,21 @@ export const AssuranceWorkflowView: React.FC = () => {
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              BRSR Report & XBRL
+              XBRL Package
             </button>
           </div>
         </div>
       </div>
+
+      {/* FEATURE 3: SPLIT-SCREEN AUDITOR VERIFICATION & EVIDENCE PORTAL */}
+      {(activeSubtab === 'auditor-portal' || !['principle-6-report', 'approvals', 'audit-trail', 'report-generator'].includes(activeSubtab)) && (
+        <AuditorVerificationPortal />
+      )}
+
+      {/* FEATURE 4: SEBI BRSR SECTION C PRINCIPLE 6 STATUTORY TABLES & EXPORT */}
+      {activeSubtab === 'principle-6-report' && (
+        <BrsrPrinciple6Report />
+      )}
 
       {/* 1. FOUR-EYES REVIEW & APPROVAL WORKFLOW */}
       {activeSubtab === 'approvals' && (

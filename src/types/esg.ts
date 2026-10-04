@@ -123,3 +123,116 @@ export interface DataEntryRecord {
   invoiceFile?: string;
   verifiedBySiteHead: boolean;
 }
+
+// ==============================================================================
+// STEP 1: SYSTEM ARCHITECTURE & DATA SCHEMA INTERFACES
+// ==============================================================================
+
+export type ScopeType = 'Scope 1' | 'Scope 2' | 'Scope 3';
+export type EmissionLogStatus = 'Draft' | 'Submitted' | 'Approved' | 'Audited' | 'Flagged';
+export type DocumentType =
+  | 'Fuel Invoice'
+  | 'Electricity Bill'
+  | 'Weighbridge Slip'
+  | 'Flow Meter Calibration'
+  | 'Vendor Environmental Certificate'
+  | 'Grid Telemetry Log';
+
+export interface EmissionsLog {
+  id: string;
+  siteId: string;
+  siteName: string;
+  reportingMonthYear: string; // e.g. "2026-09" or "Sep 2026"
+  scopeType: ScopeType;
+  activityCategory: string; // e.g. "DG Set Diesel", "Grid Power DISCOM", "Steel TMT Rebar"
+  activityQuantity: number;
+  unit: string; // "Liters", "kWh", "Metric Tonnes", "passenger-km"
+  emissionFactor: number; // kg CO2e / unit
+  co2eMetricTonnes: number; // (Quantity * Factor) / 1000
+  status: EmissionLogStatus;
+  invoiceNo?: string;
+  fileUrl?: string;
+  documentType?: DocumentType;
+  uploadedBy?: string;
+  uploadedAt?: string;
+  facility?: string;
+  notes?: string;
+  auditorComments?: string;
+  verifiedAt?: string;
+  verifiedBy?: string;
+}
+
+export interface EvidenceAttachment {
+  id: string;
+  emissionLogId: string;
+  fileUrl: string;
+  fileName: string;
+  documentType: DocumentType;
+  uploadedBy: string;
+  uploadedAt: string;
+  fileSizeBytes?: number;
+  verificationHash?: string;
+  ocrConfidencePct?: number;
+}
+
+export interface AuditTrailRecord {
+  id: string;
+  recordId: string;
+  action: 'CREATE' | 'UPDATE' | 'VERIFY' | 'FLAG' | 'REJECT' | 'APPROVE';
+  actorId: string;
+  role: UserRole;
+  previousValue: string;
+  newValue: string;
+  timestamp: string;
+  comments: string;
+  verifiedHash?: string;
+}
+
+export interface BusinessUnitNode {
+  id: string;
+  code: string;
+  name: string;
+  division: string;
+  companyId: string;
+  companyName: string;
+  siteCount: number;
+  scope1: number;
+  scope2: number;
+  scope3: number;
+  totalScope: number;
+  energyGj: number;
+  turnoverCr: number;
+  intensityTco2ePerCr: number;
+  sites: InfrastructureSite[];
+}
+
+export interface CompanyNode {
+  id: string;
+  code: string;
+  name: string;
+  groupId: string;
+  buCount: number;
+  siteCount: number;
+  scope1: number;
+  scope2: number;
+  scope3: number;
+  totalScope: number;
+  energyGj: number;
+  turnoverCr: number;
+  intensityTco2ePerCr: number;
+  businessUnits: BusinessUnitNode[];
+}
+
+export interface GroupNode {
+  id: string;
+  code: string;
+  name: string;
+  turnoverCr: number;
+  totalEnergyGj: number;
+  scope1: number;
+  scope2: number;
+  scope3: number;
+  totalScope: number;
+  intensityTco2ePerCr: number;
+  companies: CompanyNode[];
+}
