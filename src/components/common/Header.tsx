@@ -23,39 +23,6 @@ import {
   Tag,
 } from 'lucide-react';
 
-const ROLES: { role: UserRole; scopeLabel: string; desc: string }[] = [
-  {
-    role: 'Group ESG Admin',
-    scopeLabel: 'Scope: Full MEIL Group (Unrestricted)',
-    desc: 'Full access to all modules, subsidiaries, BU, projects, approvals, XBRL lock & settings',
-  },
-  {
-    role: 'Subsidiary Approver',
-    scopeLabel: 'Scope: Megha Hydro Infrastructure Ltd',
-    desc: 'Assigned subsidiary sign-off, four-eyes review, approval & rejection controls',
-  },
-  {
-    role: 'Business Unit Reviewer',
-    scopeLabel: 'Scope: Hydro & Irrigation Division',
-    desc: 'Assigned BU KPI verification, review ESG entries, comment & request corrections',
-  },
-  {
-    role: 'Project Data Entry User',
-    scopeLabel: 'Scope: Site #042 • Polavaram Multi-Purpose',
-    desc: 'Draft telemetry entry, fuel & grid weighbridge slip uploads for assigned project only',
-  },
-  {
-    role: 'Independent Auditor (ISAE 3000)',
-    scopeLabel: 'Scope: Statutory ISAE 3000 Assurance Scope',
-    desc: 'Read-only access to approved records, evidence files, recalculations & audit logs',
-  },
-  {
-    role: 'Board Viewer',
-    scopeLabel: 'Scope: Executive Board Strategic Governance',
-    desc: 'Read-only access to strategic ESG dashboards, high-level KPIs, heatmaps & summaries',
-  },
-];
-
 const REPORTING_CYCLES: ReportingCycle[] = [
   'FY 2024-25 (Active)',
   'FY 2025-26 (Draft)',
@@ -81,19 +48,15 @@ export const Header: React.FC = () => {
     logout,
     theme,
     toggleTheme,
-    isDemoMode,
-    switchDemoRole,
   } = useEsg();
 
   const [siteDropdownOpen, setSiteDropdownOpen] = useState(false);
   const [siteSearch, setSiteSearch] = useState('');
   const [cycleDropdownOpen, setCycleDropdownOpen] = useState(false);
-  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const siteDropdownRef = useRef<HTMLDivElement>(null);
   const cycleDropdownRef = useRef<HTMLDivElement>(null);
-  const roleDropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -103,9 +66,6 @@ export const Header: React.FC = () => {
       }
       if (cycleDropdownRef.current && !cycleDropdownRef.current.contains(event.target as Node)) {
         setCycleDropdownOpen(false);
-      }
-      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target as Node)) {
-        setRoleDropdownOpen(false);
       }
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
         setProfileDropdownOpen(false);
@@ -348,83 +308,7 @@ export const Header: React.FC = () => {
           )}
         </div>
 
-        {/* DEMO MODE: Role Simulator Context Switcher */}
-        {isDemoMode && (
-          <div className="relative" ref={roleDropdownRef}>
-            <button
-              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-              className="flex items-center gap-2 px-2.5 py-1.5 bg-indigo-950/60 hover:bg-indigo-900/60 border border-indigo-500/50 rounded-lg text-xs text-indigo-200 transition-colors cursor-pointer shadow-sm shadow-indigo-950"
-              title="Simulate Enterprise Role Context"
-            >
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <div className="text-left hidden sm:block">
-                <div className="text-[9px] text-amber-300 font-bold uppercase tracking-wider leading-none">
-                  Live Demo Role
-                </div>
-                <div className="font-semibold text-white truncate max-w-[140px] mt-0.5">
-                  {currentRole}
-                </div>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
-            </button>
 
-            {roleDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-indigo-700/60 rounded-xl shadow-2xl p-2.5 z-50">
-                <div className="px-2 py-1.5 border-b border-indigo-900/60 mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                    <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider">
-                      Live Demo: Role Simulator
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-mono bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/40">
-                    Testing Mode
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 px-2 mb-2 leading-relaxed">
-                  Switch personas to verify strict RBAC filtering, menu permissions, 403 route protection, and scoped project data:
-                </p>
-
-                <div className="space-y-1.5 max-h-[420px] overflow-y-auto pr-1">
-                  {ROLES.map(({ role, scopeLabel, desc }) => (
-                    <button
-                      key={role}
-                      onClick={() => {
-                        switchDemoRole(role);
-                        setRoleDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-start justify-between p-2.5 rounded-lg text-xs text-left transition-colors cursor-pointer ${
-                        currentRole === role
-                          ? 'bg-indigo-950/80 text-indigo-100 font-semibold border border-indigo-600/70 shadow-sm'
-                          : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'
-                      }`}
-                    >
-                      <div className="space-y-0.5 pr-2">
-                        <div className="text-white font-bold flex items-center gap-1.5">
-                          <span>{role}</span>
-                          {currentRole === role && (
-                            <span className="text-[9px] font-mono bg-emerald-950 text-emerald-400 px-1 py-0.2 rounded border border-emerald-800">
-                              Active
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-indigo-300 font-medium">
-                          {scopeLabel}
-                        </div>
-                        <div className="text-[10px] text-slate-400 leading-tight">
-                          {desc}
-                        </div>
-                      </div>
-                      {currentRole === role && (
-                        <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Anomaly Quick Alert pill button if any open */}
         {openAnomaliesCount > 0 && currentRole !== 'Project Data Entry User' && (
