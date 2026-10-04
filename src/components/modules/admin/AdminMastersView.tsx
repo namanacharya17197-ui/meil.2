@@ -188,17 +188,22 @@ export const AdminMastersView: React.FC = () => {
                       <td className="py-3 px-3 text-slate-400">{factor.sourceStandard}</td>
                       <td className="py-3 px-3 text-slate-400">{factor.effectiveYear}</td>
                       <td className="py-3 px-3 text-center">
-                        {isEditing ? (
+                        {currentRole !== 'Group ESG Admin' ? (
+                          <span className="text-[10px] text-slate-500 font-mono flex items-center justify-center gap-1">
+                            <Lock className="w-3 h-3 text-slate-500" />
+                            <span>Admin Only</span>
+                          </span>
+                        ) : isEditing ? (
                           <button
                             onClick={() => handleSaveFactor(factor)}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold flex items-center gap-1 mx-auto"
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold flex items-center gap-1 mx-auto cursor-pointer"
                           >
                             <Save className="w-3 h-3" /> Save
                           </button>
                         ) : (
                           <button
                             onClick={() => handleEditFactor(factor)}
-                            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs flex items-center gap-1 mx-auto"
+                            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs flex items-center gap-1 mx-auto cursor-pointer"
                           >
                             <Edit className="w-3 h-3" /> Edit
                           </button>

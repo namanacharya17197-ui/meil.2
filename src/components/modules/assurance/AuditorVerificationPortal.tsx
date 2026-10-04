@@ -27,6 +27,7 @@ import {
 export const AuditorVerificationPortal: React.FC = () => {
   const {
     emissionsLogs,
+    scopedEmissionsLogs,
     updateEmissionsLogStatus,
     evidenceAttachments,
     auditTrailRecords,
@@ -35,7 +36,7 @@ export const AuditorVerificationPortal: React.FC = () => {
   } = useEsg();
 
   // Selection
-  const [selectedLogId, setSelectedLogId] = useState<string>(emissionsLogs[0]?.id || 'em-log-01');
+  const [selectedLogId, setSelectedLogId] = useState<string>(scopedEmissionsLogs[0]?.id || 'em-log-01');
   const [filterScope, setFilterScope] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -51,8 +52,8 @@ export const AuditorVerificationPortal: React.FC = () => {
 
   // Active selected log
   const selectedLog: EmissionsLog = useMemo(() => {
-    return emissionsLogs.find((l) => l.id === selectedLogId) || emissionsLogs[0];
-  }, [selectedLogId, emissionsLogs]);
+    return scopedEmissionsLogs.find((l) => l.id === selectedLogId) || scopedEmissionsLogs[0];
+  }, [selectedLogId, scopedEmissionsLogs]);
 
   // Associated evidence attachment
   const selectedEvidence = useMemo(() => {
@@ -81,7 +82,7 @@ export const AuditorVerificationPortal: React.FC = () => {
 
   // Filtered emission logs list
   const filteredLogs = useMemo(() => {
-    return emissionsLogs.filter((log) => {
+    return scopedEmissionsLogs.filter((log) => {
       const matchSearch =
         log.siteName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.activityCategory.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -90,7 +91,7 @@ export const AuditorVerificationPortal: React.FC = () => {
       const matchStatus = filterStatus === 'ALL' || log.status === filterStatus;
       return matchSearch && matchScope && matchStatus;
     });
-  }, [emissionsLogs, searchQuery, filterScope, filterStatus]);
+  }, [scopedEmissionsLogs, searchQuery, filterScope, filterStatus]);
 
   // Handle Auditor Decisions with Validation
   const handleAuditorDecision = async (status: EmissionLogStatus) => {

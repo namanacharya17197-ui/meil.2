@@ -131,13 +131,23 @@ const MASTER_EMISSION_FACTORS: FactorOption[] = [
 ];
 
 export const ScopeEmissionsLogger: React.FC = () => {
-  const { sites, emissionsLogs, addEmissionsLog, addEvidenceAttachment, currentRole } = useEsg();
+  const {
+    sites,
+    scopedSites,
+    emissionsLogs,
+    scopedEmissionsLogs,
+    addEmissionsLog,
+    addEvidenceAttachment,
+    currentRole,
+    canPerformAction,
+    userScope,
+  } = useEsg();
 
   // Active Scope tab: 'Scope 1' | 'Scope 2' | 'Scope 3' | 'ALL'
   const [activeScopeTab, setActiveScopeTab] = useState<ScopeType | 'ALL'>('Scope 1');
 
   // Form State
-  const [selectedSiteId, setSelectedSiteId] = useState<string>(sites[0]?.id || 'site-042');
+  const [selectedSiteId, setSelectedSiteId] = useState<string>(scopedSites[0]?.id || 'site-042');
   const [reportingMonthYear, setReportingMonthYear] = useState<string>('2026-09');
   const [activityCategory, setActivityCategory] = useState<string>(MASTER_EMISSION_FACTORS[0].category);
   const [quantity, setQuantity] = useState<number>(10000);
@@ -266,7 +276,7 @@ export const ScopeEmissionsLogger: React.FC = () => {
 
   // Filtered table rows
   const filteredRows = useMemo(() => {
-    return emissionsLogs.filter((log) => {
+    return scopedEmissionsLogs.filter((log) => {
       const matchSearch =
         log.siteName.toLowerCase().includes(tableSearch.toLowerCase()) ||
         log.activityCategory.toLowerCase().includes(tableSearch.toLowerCase()) ||
@@ -275,7 +285,7 @@ export const ScopeEmissionsLogger: React.FC = () => {
       const matchStatus = tableStatusFilter === 'ALL' || log.status === tableStatusFilter;
       return matchSearch && matchScope && matchStatus;
     });
-  }, [emissionsLogs, tableSearch, tableScopeFilter, tableStatusFilter]);
+  }, [scopedEmissionsLogs, tableSearch, tableScopeFilter, tableStatusFilter]);
 
   return (
     <div className="space-y-6">
@@ -364,6 +374,20 @@ export const ScopeEmissionsLogger: React.FC = () => {
             </span>
           </div>
 
+          {!canPerformAction('create') ? (
+            <div className="p-4 bg-slate-950/90 border border-slate-800 rounded-xl text-xs text-slate-400 space-y-2">
+              <div className="flex items-center gap-2 text-sky-400 font-semibold">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Read-Only Assurance & Observation Mode</span>
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                Your assigned role (<strong className="text-white">{currentRole}</strong>) is restricted from direct emissions telemetry entry. Real-time data logging is designated to Project Data Entry Users and ESG Admins.
+              </p>
+              <div className="text-[10px] text-slate-500 font-mono">
+                Scope: {userScope.description}
+              </div>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {/* Site Selector */}
@@ -374,7 +398,7 @@ export const ScopeEmissionsLogger: React.FC = () => {
                   onChange={(e) => setSelectedSiteId(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500"
                 >
-                  {sites.map((site) => (
+                  {scopedSites.map((site) => (
                     <option key={site.id} value={site.id}>
                       {site.code} - {site.name} ({site.division})
                     </option>
@@ -557,6 +581,7 @@ export const ScopeEmissionsLogger: React.FC = () => {
               </button>
             </div>
           </form>
+          )}
         </div>
 
         {/* RIGHT COLUMN: Instantaneous Calculation Display & Mathematical Transparency */}

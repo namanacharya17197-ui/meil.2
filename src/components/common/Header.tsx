@@ -19,15 +19,41 @@ import {
   Globe,
   Sun,
   Moon,
+  Lock,
+  Tag,
 } from 'lucide-react';
 
-const ROLES: UserRole[] = [
-  'Group ESG Admin',
-  'Subsidiary Approver',
-  'Business Unit Reviewer',
-  'Project Data Entry User',
-  'Independent Auditor (ISAE 3000)',
-  'Board Viewer',
+const ROLES: { role: UserRole; scopeLabel: string; desc: string }[] = [
+  {
+    role: 'Group ESG Admin',
+    scopeLabel: 'Scope: Full MEIL Group (Unrestricted)',
+    desc: 'Full access to all modules, subsidiaries, BU, projects, approvals, XBRL lock & settings',
+  },
+  {
+    role: 'Subsidiary Approver',
+    scopeLabel: 'Scope: Megha Hydro Infrastructure Ltd',
+    desc: 'Assigned subsidiary sign-off, four-eyes review, approval & rejection controls',
+  },
+  {
+    role: 'Business Unit Reviewer',
+    scopeLabel: 'Scope: Hydro & Irrigation Division',
+    desc: 'Assigned BU KPI verification, review ESG entries, comment & request corrections',
+  },
+  {
+    role: 'Project Data Entry User',
+    scopeLabel: 'Scope: Site #042 • Polavaram Multi-Purpose',
+    desc: 'Draft telemetry entry, fuel & grid weighbridge slip uploads for assigned project only',
+  },
+  {
+    role: 'Independent Auditor (ISAE 3000)',
+    scopeLabel: 'Scope: Statutory ISAE 3000 Assurance Scope',
+    desc: 'Read-only access to approved records, evidence files, recalculations & audit logs',
+  },
+  {
+    role: 'Board Viewer',
+    scopeLabel: 'Scope: Executive Board Strategic Governance',
+    desc: 'Read-only access to strategic ESG dashboards, high-level KPIs, heatmaps & summaries',
+  },
 ];
 
 const REPORTING_CYCLES: ReportingCycle[] = [
@@ -43,17 +69,20 @@ export const Header: React.FC = () => {
     selectedCycle,
     setSelectedCycle,
     currentRole,
-    setCurrentRole,
     sites,
+    scopedSites,
     setIsTourOpen,
     setActiveModule,
     setActiveSubtab,
     setIsLoginModalOpen,
     anomalies,
     currentUser,
+    userScope,
     logout,
     theme,
     toggleTheme,
+    isDemoMode,
+    switchDemoRole,
   } = useEsg();
 
   const [siteDropdownOpen, setSiteDropdownOpen] = useState(false);
@@ -88,7 +117,7 @@ export const Header: React.FC = () => {
 
   const currentSite = sites.find((s) => s.id === selectedSiteId);
 
-  const filteredSites = sites.filter(
+  const filteredSites = scopedSites.filter(
     (s) =>
       s.name.toLowerCase().includes(siteSearch.toLowerCase()) ||
       s.code.toLowerCase().includes(siteSearch.toLowerCase()) ||
@@ -96,20 +125,19 @@ export const Header: React.FC = () => {
       s.state.toLowerCase().includes(siteSearch.toLowerCase())
   );
 
-  // Group sites by division for clear hierarchy in dropdown
-  const divisions = Array.from(new Set(sites.map((s) => s.division)));
-
+  const divisions = Array.from(new Set(scopedSites.map((s) => s.division)));
   const openAnomaliesCount = anomalies.filter((a) => a.status === 'Open').length;
+  const isSiteSelectionLocked = currentRole === 'Project Data Entry User';
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 z-50 px-4 flex items-center justify-between shadow-lg shadow-black/20">
-      {/* Left: MEIL Brand & Core Badge */}
-      <div className="flex items-center gap-4">
+      {/* Left: MEIL Brand & Site Scoping */}
+      <div className="flex items-center gap-3">
         <button
           onClick={() => setActiveModule('overview')}
-          className="flex items-center gap-3 text-left group focus-visible:outline-none"
+          className="flex items-center gap-3 text-left group focus-visible:outline-none cursor-pointer"
         >
-          {/* Official MEIL Logo (Red emblem + Blue meil wordmark) */}
+          {/* Official MEIL Logo */}
           <div className="bg-black/80 px-2 py-1 rounded-lg border border-slate-700/80 shadow-inner flex items-center group-hover:border-slate-500 transition-colors">
             <MeilLogo height={28} showText={true} />
           </div>
@@ -120,33 +148,58 @@ export const Header: React.FC = () => {
               </span>
             </div>
             <p className="text-[11px] text-slate-400 leading-none mt-0.5">
-              Megha Engineering & Infrastructures Ltd · ISAE 3000 Ready
+              Megha Engineering & Infrastructures Ltd · RBAC Governed
             </p>
           </div>
         </button>
 
         <div className="h-6 w-px bg-slate-800 hidden lg:block" />
 
-        {/* Global Site / Entity Switcher */}
+        {/* Global Site / Entity Switcher (Scoped by Active Role) */}
         <div className="relative" ref={siteDropdownRef}>
           <button
-            onClick={() => setSiteDropdownOpen(!siteDropdownOpen)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 rounded-lg text-xs text-slate-200 transition-all max-w-[280px] xl:max-w-[340px]"
-            title="Switch Reporting Entity / Infrastructure Site"
+            onClick={() => {
+              if (!isSiteSelectionLocked) {
+                setSiteDropdownOpen(!siteDropdownOpen);
+              }
+            }}
+            disabled={isSiteSelectionLocked}
+            className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs transition-all max-w-[280px] xl:max-w-[340px] ${
+              isSiteSelectionLocked
+                ? 'bg-slate-950/70 border-slate-800 text-slate-400 cursor-not-allowed'
+                : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700/80 text-slate-200 cursor-pointer'
+            }`}
+            title={
+              isSiteSelectionLocked
+                ? `Locked to assigned project: ${userScope.projectName || userScope.projectId}`
+                : 'Switch Reporting Entity / Infrastructure Site'
+            }
           >
             <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <div className="truncate text-left">
               <span className="font-medium text-white">
-                {selectedSiteId === 'all' ? 'All Infrastructure Sites (Group)' : currentSite?.code}
+                {selectedSiteId === 'all'
+                  ? currentRole === 'Subsidiary Approver'
+                    ? 'Hydro Subsidiary Sites'
+                    : 'All Scoped Infrastructure Sites'
+                  : currentSite?.code}
               </span>
               <span className="text-slate-400 text-[11px] ml-1">
-                {selectedSiteId === 'all' ? `(${sites.length} Active Sites)` : `· ${currentSite?.name}`}
+                {selectedSiteId === 'all'
+                  ? `(${scopedSites.length} Sites in Scope)`
+                  : `· ${currentSite?.name}`}
               </span>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-auto" />
+            {!isSiteSelectionLocked ? (
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-auto" />
+            ) : (
+              <span title="Scope Locked by RBAC" className="shrink-0 ml-auto flex items-center">
+                <Lock className="w-3 h-3 text-amber-400" />
+              </span>
+            )}
           </button>
 
-          {siteDropdownOpen && (
+          {siteDropdownOpen && !isSiteSelectionLocked && (
             <div className="absolute left-0 mt-2 w-96 max-h-[480px] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50 flex flex-col animate-in fade-in zoom-in-95 duration-100">
               <div className="p-2.5 border-b border-slate-800 bg-slate-950/60">
                 <div className="relative">
@@ -155,7 +208,7 @@ export const Header: React.FC = () => {
                     type="text"
                     value={siteSearch}
                     onChange={(e) => setSiteSearch(e.target.value)}
-                    placeholder="Search 25+ mega projects, dams, tunnels..."
+                    placeholder="Search permitted projects..."
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
                     autoFocus
                   />
@@ -168,21 +221,27 @@ export const Header: React.FC = () => {
                     setSelectedSiteId('all');
                     setSiteDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs transition-colors ${
+                  className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs transition-colors cursor-pointer ${
                     selectedSiteId === 'all'
                       ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-800/60'
-                      : 'text-slate-200 hover:bg-slate-800/80'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-emerald-400" />
-                    <div>
-                      <div className="font-semibold text-white">MEIL Consolidated Group</div>
-                      <div className="text-[10px] text-slate-400">All 25+ Sites · 100% Core Scope Ingestion</div>
+                        : 'text-slate-200 hover:bg-slate-800/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-emerald-400" />
+                      <div>
+                        <div className="font-semibold text-white">
+                          {currentRole === 'Subsidiary Approver'
+                            ? 'All Subsidiary Sites (Megha Hydro)'
+                            : 'Consolidated Scoped Entity'}
+                        </div>
+                        <div className="text-[10px] text-slate-400">
+                          {scopedSites.length} Sites Authorized in Current Role Scope
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  {selectedSiteId === 'all' && <Check className="w-4 h-4 text-emerald-400" />}
-                </button>
+                    {selectedSiteId === 'all' && <Check className="w-4 h-4 text-emerald-400" />}
+                  </button>
 
                 {divisions.map((div) => {
                   const divSites = filteredSites.filter((s) => s.division === div);
@@ -202,7 +261,7 @@ export const Header: React.FC = () => {
                               setSelectedSiteId(site.id);
                               setSiteDropdownOpen(false);
                             }}
-                            className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs transition-colors ${
+                            className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs transition-colors cursor-pointer ${
                               selectedSiteId === site.id
                                 ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-800/60'
                                 : 'text-slate-300 hover:bg-slate-800/70'
@@ -214,7 +273,7 @@ export const Header: React.FC = () => {
                                 <span className="text-slate-400 font-normal">· {site.name}</span>
                               </div>
                               <div className="text-[10px] text-slate-500 flex items-center gap-2 mt-0.5">
-                                <span>{site.state}, {site.country}</span>
+                                <span>{site.subsidiary}</span>
                                 <span>·</span>
                                 <span className="text-emerald-400/90">{site.scope1 + site.scope2} tCO2e</span>
                               </div>
@@ -232,19 +291,34 @@ export const Header: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* User Scope Pill Indicator */}
+        <div className="hidden 2xl:flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/70 border border-slate-800 rounded-lg text-[11px] text-slate-300">
+          <Tag className="w-3 h-3 text-indigo-400 shrink-0" />
+          <span className="text-slate-500 font-mono">Scope:</span>
+          <span className="font-medium text-slate-200 truncate max-w-[200px]" title={userScope.description}>
+            {userScope.projectId
+              ? `Site #042 Polavaram`
+              : userScope.subsidiary
+              ? userScope.subsidiary
+              : userScope.businessUnit
+              ? userScope.businessUnit
+              : 'All MEIL Group'}
+          </span>
+        </div>
       </div>
 
-      {/* Center / Right: Cycle Selector, Role Simulator, AI Tour, Profile */}
-      <div className="flex items-center gap-3">
+      {/* Center / Right Controls: Cycle, Demo Simulator, Theme, Tour, Profile */}
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* Reporting Cycle Selector */}
         <div className="relative" ref={cycleDropdownRef}>
           <button
             onClick={() => setCycleDropdownOpen(!cycleDropdownOpen)}
-            className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 rounded-lg text-xs text-slate-200 transition-colors"
-            title="Select Financial Year Reporting Cycle"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 rounded-lg text-xs text-slate-200 transition-colors cursor-pointer"
+            title="Active Statutory Cycle"
           >
             <Calendar className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-            <span className="font-medium">{selectedCycle}</span>
+            <span className="hidden sm:inline font-medium">{selectedCycle}</span>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
 
@@ -260,7 +334,7 @@ export const Header: React.FC = () => {
                     setSelectedCycle(cycle);
                     setCycleDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left transition-colors ${
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left transition-colors cursor-pointer ${
                     selectedCycle === cycle
                       ? 'bg-sky-950/60 text-sky-300 font-medium'
                       : 'text-slate-300 hover:bg-slate-800/80'
@@ -274,67 +348,89 @@ export const Header: React.FC = () => {
           )}
         </div>
 
-        {/* Role Simulator Context Switcher */}
-        <div className="relative" ref={roleDropdownRef}>
-          <button
-            onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-            className="flex items-center gap-2 px-2.5 py-1.5 bg-indigo-950/40 hover:bg-indigo-950/70 border border-indigo-700/50 rounded-lg text-xs text-indigo-200 transition-colors"
-            title="Simulate Enterprise Role Context"
-          >
-            <UserCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <div className="text-left hidden sm:block">
-              <div className="text-[10px] text-indigo-400/80 leading-none">Role View</div>
-              <div className="font-medium text-white truncate max-w-[130px]">{currentRole}</div>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-indigo-300" />
-          </button>
+        {/* DEMO MODE: Role Simulator Context Switcher */}
+        {isDemoMode && (
+          <div className="relative" ref={roleDropdownRef}>
+            <button
+              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+              className="flex items-center gap-2 px-2.5 py-1.5 bg-indigo-950/60 hover:bg-indigo-900/60 border border-indigo-500/50 rounded-lg text-xs text-indigo-200 transition-colors cursor-pointer shadow-sm shadow-indigo-950"
+              title="Simulate Enterprise Role Context"
+            >
+              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <div className="text-left hidden sm:block">
+                <div className="text-[9px] text-amber-300 font-bold uppercase tracking-wider leading-none">
+                  Live Demo Role
+                </div>
+                <div className="font-semibold text-white truncate max-w-[140px] mt-0.5">
+                  {currentRole}
+                </div>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
+            </button>
 
-          {roleDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50">
-              <div className="text-[10px] font-semibold text-indigo-400 px-2 py-1 uppercase tracking-wider flex items-center justify-between">
-                <span>Enterprise Role Simulator</span>
-                <span className="text-[9px] bg-indigo-900/60 text-indigo-300 px-1 rounded">Live Demo</span>
-              </div>
-              <div className="space-y-1 mt-1">
-                {ROLES.map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => {
-                      setCurrentRole(role);
-                      setRoleDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between p-2 rounded-lg text-xs text-left transition-colors ${
-                      currentRole === role
-                        ? 'bg-indigo-900/40 text-indigo-200 font-semibold border border-indigo-700/50'
-                        : 'text-slate-300 hover:bg-slate-800/80'
-                    }`}
-                  >
-                    <div>
-                      <div>{role}</div>
-                      <div className="text-[10px] text-slate-500">
-                        {role === 'Group ESG Admin' && 'Full executive access, approvals & XBRL lock'}
-                        {role === 'Subsidiary Approver' && 'Division level four-eyes sign-off'}
-                        {role === 'Business Unit Reviewer' && 'Site KPI verification & memo drafting'}
-                        {role === 'Project Data Entry User' && 'Quick-entry spreadsheet & invoice upload'}
-                        {role === 'Independent Auditor (ISAE 3000)' && 'Assurance checks, recalculate & audit logs'}
-                        {role === 'Board Viewer' && 'Read-only strategic heatmaps & ESG summaries'}
+            {roleDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-indigo-700/60 rounded-xl shadow-2xl p-2.5 z-50">
+                <div className="px-2 py-1.5 border-b border-indigo-900/60 mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider">
+                      Live Demo: Role Simulator
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-mono bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/40">
+                    Testing Mode
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 px-2 mb-2 leading-relaxed">
+                  Switch personas to verify strict RBAC filtering, menu permissions, 403 route protection, and scoped project data:
+                </p>
+
+                <div className="space-y-1.5 max-h-[420px] overflow-y-auto pr-1">
+                  {ROLES.map(({ role, scopeLabel, desc }) => (
+                    <button
+                      key={role}
+                      onClick={() => {
+                        switchDemoRole(role);
+                        setRoleDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-start justify-between p-2.5 rounded-lg text-xs text-left transition-colors cursor-pointer ${
+                        currentRole === role
+                          ? 'bg-indigo-950/80 text-indigo-100 font-semibold border border-indigo-600/70 shadow-sm'
+                          : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'
+                      }`}
+                    >
+                      <div className="space-y-0.5 pr-2">
+                        <div className="text-white font-bold flex items-center gap-1.5">
+                          <span>{role}</span>
+                          {currentRole === role && (
+                            <span className="text-[9px] font-mono bg-emerald-950 text-emerald-400 px-1 py-0.2 rounded border border-emerald-800">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-indigo-300 font-medium">
+                          {scopeLabel}
+                        </div>
+                        <div className="text-[10px] text-slate-400 leading-tight">
+                          {desc}
+                        </div>
                       </div>
-                    </div>
-                    {currentRole === role && <Check className="w-3.5 h-3.5 text-indigo-400 shrink-0 ml-1" />}
-                  </button>
-                ))}
+                      {currentRole === role && (
+                        <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Anomaly Quick Alert pill button if any open */}
-        {openAnomaliesCount > 0 && (
+        {openAnomaliesCount > 0 && currentRole !== 'Project Data Entry User' && (
           <button
-            onClick={() => {
-              setActiveModule('analytics');
-            }}
-            className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-950/40 hover:bg-amber-950/70 border border-amber-800/60 rounded-lg text-xs text-amber-300 transition-colors"
+            onClick={() => setActiveModule('analytics')}
+            className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-950/40 hover:bg-amber-950/70 border border-amber-800/60 rounded-lg text-xs text-amber-300 transition-colors cursor-pointer"
             title={`${openAnomaliesCount} Data Quality Anomalies Detected`}
           >
             <AlertTriangle className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
@@ -345,19 +441,19 @@ export const Header: React.FC = () => {
         {/* Dark Mode & Light Mode Toggle */}
         <button
           onClick={toggleTheme}
-          className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200 transition-all shadow-sm focus-visible:outline-none"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200 transition-all shadow-sm focus-visible:outline-none cursor-pointer"
           title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
           aria-label="Toggle Dark and Light Mode"
         >
           {theme === 'dark' ? (
             <>
               <Sun className="w-3.5 h-3.5 text-amber-400" />
-              <span>Light Mode</span>
+              <span className="hidden md:inline">Light</span>
             </>
           ) : (
             <>
               <Moon className="w-3.5 h-3.5 text-sky-400" />
-              <span>Dark Mode</span>
+              <span className="hidden md:inline">Dark</span>
             </>
           )}
         </button>
@@ -365,17 +461,17 @@ export const Header: React.FC = () => {
         {/* Guided Tour Trigger */}
         <button
           onClick={() => setIsTourOpen(true)}
-          className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors"
+          className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
           title="Launch Guided Interactive Tour"
         >
           <Compass className="w-4 h-4" />
         </button>
 
-        {/* User Profile */}
+        {/* User Profile Menu with Scope Display */}
         <div className="relative" ref={profileDropdownRef}>
           <button
             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-            className="flex items-center gap-2 p-1 hover:bg-slate-800/80 rounded-lg transition-colors focus-visible:outline-none"
+            className="flex items-center gap-2 p-1 hover:bg-slate-800/80 rounded-lg transition-colors focus-visible:outline-none cursor-pointer"
           >
             <div className="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center font-bold text-xs text-emerald-400 shadow-inner">
               {currentUser?.name
@@ -391,19 +487,24 @@ export const Header: React.FC = () => {
               <div className="text-xs font-semibold text-slate-100 leading-none">
                 {currentUser?.name || 'K. V. Rao'}
               </div>
-              <div className="text-[10px] text-slate-400 leading-tight mt-0.5">
-                {currentUser?.title || 'Chief Sustainability Officer'}
+              <div className="text-[10px] text-slate-400 leading-tight mt-0.5 truncate max-w-[130px]">
+                {currentUser?.title || currentRole}
               </div>
             </div>
             <ChevronDown className="w-3 h-3 text-slate-400 hidden lg:block" />
           </button>
 
           {profileDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50">
-              <div className="px-2 py-1.5 border-b border-slate-800 mb-1">
-                <div className="font-semibold text-xs text-white">{currentUser?.name || 'K. V. Rao'}</div>
-                <div className="text-[11px] text-slate-400">{currentUser?.email || 'cso@meilgroup.com'}</div>
-                <div className="text-[10px] text-emerald-400 mt-0.5 font-medium">{currentRole}</div>
+            <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2.5 z-50">
+              <div className="px-2 py-2 border-b border-slate-800 mb-2 space-y-1">
+                <div className="font-bold text-xs text-white">{currentUser?.name || 'K. V. Rao'}</div>
+                <div className="text-[11px] text-slate-400 font-mono">{currentUser?.email || 'cso@meilgroup.com'}</div>
+                <div className="inline-block text-[10px] bg-emerald-950/80 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800 font-semibold">
+                  {currentRole}
+                </div>
+                <div className="text-[10px] text-slate-400 mt-1 leading-snug">
+                  <strong>Scope:</strong> {userScope.description}
+                </div>
               </div>
 
               <button
@@ -412,7 +513,7 @@ export const Header: React.FC = () => {
                   setActiveSubtab('hero-landing');
                   setProfileDropdownOpen(false);
                 }}
-                className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left transition-colors"
+                className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left transition-colors cursor-pointer"
               >
                 <Globe className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Public Corporate Landing Portal</span>
@@ -423,10 +524,10 @@ export const Header: React.FC = () => {
                   setIsLoginModalOpen(true);
                   setProfileDropdownOpen(false);
                 }}
-                className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left transition-colors"
+                className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left transition-colors cursor-pointer"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
-                <span>Switch Role / Enterprise Gateway</span>
+                <span>Authentication Gateway</span>
               </button>
 
               <button
@@ -434,13 +535,13 @@ export const Header: React.FC = () => {
                   setIsTourOpen(true);
                   setProfileDropdownOpen(false);
                 }}
-                className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left transition-colors"
+                className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left transition-colors cursor-pointer"
               >
                 <Compass className="w-3.5 h-3.5 text-purple-400" />
                 <span>Product Walkthrough & Help</span>
               </button>
 
-              <div className="border-t border-slate-800 my-1" />
+              <div className="border-t border-slate-800 my-1.5" />
 
               <button
                 onClick={() => {
@@ -450,7 +551,7 @@ export const Header: React.FC = () => {
                 className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-rose-400 hover:bg-rose-950/40 rounded-lg text-left transition-colors font-medium cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out & Return to Landing</span>
+                <span>Sign Out & Terminate Session</span>
               </button>
             </div>
           )}

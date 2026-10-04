@@ -33,14 +33,16 @@ export const DataCollectionView: React.FC = () => {
     setActiveModule,
     selectedSiteId,
     sites,
+    scopedSites,
     brsrIndicators,
     setBrsrIndicators,
     addAuditLog,
     currentRole,
     setSites,
+    canPerformAction,
   } = useEsg();
 
-  const currentSite = sites.find((s) => s.id === selectedSiteId) || sites[0];
+  const currentSite = scopedSites.find((s) => s.id === selectedSiteId) || scopedSites[0] || sites[0];
 
   // Quick-entry spreadsheet state for the current site
   const [quickRows, setQuickRows] = useState<WeighbridgeRecord[]>([
@@ -339,6 +341,15 @@ export const DataCollectionView: React.FC = () => {
               </span>
             </div>
 
+            {!canPerformAction('create') ? (
+              <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-lg text-xs text-slate-400 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-sky-400" />
+                  <span>Read-Only Verification Mode: Data creation and invoice ingestion are restricted to Project Data Entry Users and ESG Admins.</span>
+                </div>
+                <span className="font-mono text-[10px] text-sky-400 bg-sky-950 px-2 py-0.5 rounded border border-sky-800 font-semibold">{currentRole}</span>
+              </div>
+            ) : (
             <form onSubmit={handleAddQuickRow} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 text-xs">
               <div>
                 <label className="block text-slate-400 mb-1">Date</label>
@@ -426,6 +437,7 @@ export const DataCollectionView: React.FC = () => {
                 </button>
               </div>
             </form>
+            )}
 
             {saveSuccess && (
               <div className="mt-3 p-3 bg-emerald-950/90 border border-emerald-700 text-emerald-200 text-xs rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg animate-in fade-in">

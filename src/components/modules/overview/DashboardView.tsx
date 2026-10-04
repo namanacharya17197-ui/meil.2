@@ -23,6 +23,7 @@ export const DashboardView: React.FC = () => {
     setActiveModule,
     setActiveSubtab,
     sites,
+    scopedSites,
     setSelectedSiteId,
   } = useEsg();
 
@@ -462,7 +463,7 @@ export const DashboardView: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {sites.slice(0, 6).map((site) => (
+          {scopedSites.slice(0, 6).map((site) => (
             <div
               key={site.id}
               onClick={() => setSelectedSiteId(site.id)}

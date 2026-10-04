@@ -20,7 +20,15 @@ import {
 } from 'lucide-react';
 
 export const HierarchicalDrillDown: React.FC = () => {
-  const { organizationHierarchy, sites, setSelectedSiteId, setActiveModule, setActiveSubtab } = useEsg();
+  const {
+    organizationHierarchy,
+    sites,
+    setSelectedSiteId,
+    setActiveModule,
+    setActiveSubtab,
+    currentRole,
+    userScope,
+  } = useEsg();
 
   // Navigation State
   // Level: 'group' | 'company' | 'bu' | 'site'
@@ -81,6 +89,15 @@ export const HierarchicalDrillDown: React.FC = () => {
         s.state.toLowerCase().includes(siteSearch.toLowerCase())
     );
   }, [activeBu, activeCompany, sites, siteSearch]);
+
+  const companiesToDisplay = useMemo(() => {
+    if (currentRole === 'Subsidiary Approver' && userScope.subsidiary) {
+      return organizationHierarchy.companies.filter((c) =>
+        c.name.toLowerCase().includes('hydro') || userScope.subsidiary!.toLowerCase().includes(c.name.toLowerCase())
+      );
+    }
+    return organizationHierarchy.companies;
+  }, [organizationHierarchy, currentRole, userScope]);
 
   // Intensity calculations
   const calculateIntensity = (scope12: number, turnoverCr: number) => {
@@ -265,7 +282,7 @@ export const HierarchicalDrillDown: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {organizationHierarchy.companies.map((company) => (
+            {companiesToDisplay.map((company) => (
               <div
                 key={company.id}
                 onClick={() => handleSelectCompany(company.id)}

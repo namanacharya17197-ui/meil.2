@@ -21,6 +21,7 @@ import { HierarchicalDrillDown } from './HierarchicalDrillDown';
 export const OrgHierarchyView: React.FC = () => {
   const {
     sites,
+    scopedSites,
     selectedSiteId,
     setSelectedSiteId,
     setActiveModule,
@@ -147,10 +148,10 @@ export const OrgHierarchyView: React.FC = () => {
               ))}
             </div>
 
-            {(currentRole === 'Group ESG Admin' || currentRole === 'Independent Auditor (ISAE 3000)') && (
+            {currentRole === 'Group ESG Admin' && (
               <button
                 onClick={handleBulkApprove}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Bulk Sign-Off Pending Sites</span>
@@ -173,7 +174,7 @@ export const OrgHierarchyView: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {sites
+                {scopedSites
                   .filter((s) => matrixFilterStatus === 'All' || s.status === matrixFilterStatus)
                   .map((site) => (
                     <tr

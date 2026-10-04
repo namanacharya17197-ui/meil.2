@@ -27,6 +27,7 @@ export const AssuranceWorkflowView: React.FC = () => {
     activeSubtab,
     setActiveSubtab,
     approvals,
+    scopedApprovals,
     updateApprovalStatus,
     auditTrail,
     currentRole,
@@ -42,7 +43,7 @@ export const AssuranceWorkflowView: React.FC = () => {
   const [auditSearchQuery, setAuditSearchQuery] = useState('');
   const [xbrlExportSuccess, setXbrlExportSuccess] = useState(false);
 
-  const selectedApproval = approvals.find((a) => a.id === selectedApprovalId);
+  const selectedApproval = scopedApprovals.find((a) => a.id === selectedApprovalId);
 
   const handleApprove = (id: string) => {
     updateApprovalStatus(id, 'Approved', commentText || 'Verified against primary energy bills. Approved under ISAE 3000 assurance standard.');
@@ -209,8 +210,17 @@ export const AssuranceWorkflowView: React.FC = () => {
       {/* 1. FOUR-EYES REVIEW & APPROVAL WORKFLOW */}
       {activeSubtab === 'approvals' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {approvals.map((appr) => (
+          {scopedApprovals.length === 0 ? (
+            <div className="p-8 text-center bg-slate-900 border border-slate-800 rounded-xl">
+              <ShieldAlert className="w-8 h-8 text-slate-500 mx-auto mb-2" />
+              <div className="font-semibold text-white text-sm">No Pending Submissions Within Permitted Scope</div>
+              <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                No submissions are currently pending review for your assigned organizational unit. Records from other subsidiaries or business units are strictly filtered by RBAC.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {scopedApprovals.map((appr) => (
               <div
                 key={appr.id}
                 className={`p-5 rounded-xl border transition-all flex flex-col justify-between ${
@@ -292,6 +302,7 @@ export const AssuranceWorkflowView: React.FC = () => {
               </div>
             ))}
           </div>
+          )}
 
           {/* Action Modal for Four-Eyes Decision */}
           {selectedApproval && (
@@ -352,23 +363,32 @@ export const AssuranceWorkflowView: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleClarify(selectedApproval.id)}
-                      className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold"
+                      className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold cursor-pointer"
                     >
                       Request Clarification
                     </button>
-                    <button
-                      onClick={() => handleReject(selectedApproval.id)}
-                      className="px-3 py-1.5 bg-rose-700 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold"
-                    >
-                      Reject Submission
-                    </button>
-                    <button
-                      onClick={() => handleApprove(selectedApproval.id)}
-                      className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-md flex items-center gap-1"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Approve & Seal</span>
-                    </button>
+                    {(currentRole === 'Group ESG Admin' || currentRole === 'Subsidiary Approver') && (
+                      <>
+                        <button
+                          onClick={() => handleReject(selectedApproval.id)}
+                          className="px-3 py-1.5 bg-rose-700 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                        >
+                          Reject Submission
+                        </button>
+                        <button
+                          onClick={() => handleApprove(selectedApproval.id)}
+                          className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-md flex items-center gap-1 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Approve & Seal</span>
+                        </button>
+                      </>
+                    )}
+                    {currentRole === 'Business Unit Reviewer' && (
+                      <span className="text-[10px] text-amber-400 bg-amber-950/60 px-2 py-1 rounded border border-amber-800">
+                        Reviewer: Clarifications only. Sign-off reserved for Subsidiary Approvers.
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useEsg } from '../../context/EsgContext';
 import {
   LayoutDashboard,
@@ -25,6 +25,7 @@ import {
   Droplets,
   Gauge,
   Layers,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface NavModule {
@@ -49,6 +50,10 @@ export const Sidebar: React.FC = () => {
     approvals,
     anomalies,
     setIsLoginModalOpen,
+    currentRole,
+    isModuleAuthorized,
+    isSubtabAuthorized,
+    userScope,
   } = useEsg();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -58,7 +63,7 @@ export const Sidebar: React.FC = () => {
   ).length;
   const openAnomaliesCount = anomalies.filter((a) => a.status === 'Open').length;
 
-  const modules: NavModule[] = [
+  const rawModules: NavModule[] = [
     {
       id: 'overview',
       title: 'Overview & Home',
@@ -150,6 +155,17 @@ export const Sidebar: React.FC = () => {
     },
   ];
 
+  // Dynamically filter modules and subtabs strictly matching the user's role authorization
+  const permittedModules = useMemo(() => {
+    return rawModules
+      .filter((mod) => isModuleAuthorized(mod.id))
+      .map((mod) => ({
+        ...mod,
+        subtabs: mod.subtabs.filter((sub) => isSubtabAuthorized(mod.id, sub.id)),
+      }))
+      .filter((mod) => mod.subtabs.length > 0);
+  }, [currentRole, isModuleAuthorized, isSubtabAuthorized]);
+
   const handleSelectSubtab = (moduleId: string, subtabId: string) => {
     setActiveModule(moduleId);
     setActiveSubtab(subtabId);
@@ -169,16 +185,38 @@ export const Sidebar: React.FC = () => {
         {!collapsed && <span>Operations Navigation</span>}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 hover:bg-slate-800 rounded-md text-slate-400 hover:text-slate-100 transition-colors ml-auto"
+          className="p-1.5 hover:bg-slate-800 rounded-md text-slate-400 hover:text-slate-100 transition-colors ml-auto cursor-pointer"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
         </button>
       </div>
 
-      {/* Modules List */}
+      {/* Role Badge Pill in Sidebar */}
+      {!collapsed && (
+        <div className="mx-2 mt-2 p-2 bg-slate-950/70 border border-slate-800 rounded-lg">
+          <div className="flex items-center gap-1.5 text-[10px] text-slate-400 uppercase font-mono tracking-wider">
+            <ShieldCheck className="w-3 h-3 text-emerald-400" />
+            <span>Active Role Clearance</span>
+          </div>
+          <div className="text-xs font-bold text-white truncate mt-0.5">
+            {currentRole}
+          </div>
+          <div className="text-[10px] text-slate-400 truncate mt-0.5" title={userScope.description}>
+            {userScope.projectId
+              ? `Site: ${userScope.projectName || userScope.projectId}`
+              : userScope.businessUnit
+              ? `BU: ${userScope.businessUnit}`
+              : userScope.subsidiary
+              ? `Subsidiary: ${userScope.subsidiary}`
+              : 'Scope: Full MEIL Conglomerate'}
+          </div>
+        </div>
+      )}
+
+      {/* Filtered Modules List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-        {modules.map((mod) => {
+        {permittedModules.map((mod) => {
           const isModActive = activeModule === mod.id;
           const Icon = mod.icon;
 
@@ -191,7 +229,7 @@ export const Sidebar: React.FC = () => {
                     setActiveSubtab(mod.subtabs[0].id);
                   }
                 }}
-                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   isModActive
                     ? 'bg-slate-800 text-emerald-400 border border-slate-700/60 shadow-sm'
                     : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
@@ -229,7 +267,7 @@ export const Sidebar: React.FC = () => {
                       <button
                         key={sub.id}
                         onClick={() => handleSelectSubtab(mod.id, sub.id)}
-                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs transition-colors ${
+                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
                           isSubActive
                             ? 'bg-emerald-950/40 text-emerald-300 font-medium border border-emerald-800/40'
                             : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
@@ -258,10 +296,10 @@ export const Sidebar: React.FC = () => {
       {!collapsed ? (
         <div className="p-3 border-t border-slate-800 bg-slate-950/40 text-[11px] text-slate-400">
           <div className="flex items-center justify-between">
-            <span className="font-medium text-slate-300">SEBI BRSR Engine</span>
+            <span className="font-medium text-slate-300">RBAC Policy Engine</span>
             <span className="text-emerald-400 flex items-center gap-1 font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              v2.8 Live
+              Active
             </span>
           </div>
           <div className="text-[10px] text-slate-500 mt-1">
