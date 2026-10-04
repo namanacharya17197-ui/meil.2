@@ -17,6 +17,8 @@ import {
   Check,
   AlertTriangle,
   Globe,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 const ROLES: UserRole[] = [
@@ -50,6 +52,8 @@ export const Header: React.FC = () => {
     anomalies,
     currentUser,
     logout,
+    theme,
+    toggleTheme,
   } = useEsg();
 
   const [siteDropdownOpen, setSiteDropdownOpen] = useState(false);
@@ -113,9 +117,6 @@ export const Header: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-white tracking-tight text-sm group-hover:text-emerald-400 transition-colors">
                 ESG CONNECT PLATFORM
-              </span>
-              <span className="text-[10px] uppercase font-semibold tracking-wider text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-1.5 py-0.5 rounded">
-                SEBI BRSR Core Active
               </span>
             </div>
             <p className="text-[11px] text-slate-400 leading-none mt-0.5">
@@ -341,27 +342,24 @@ export const Header: React.FC = () => {
           </button>
         )}
 
-        {/* AI Copilot Quick Launch */}
+        {/* Dark Mode & Light Mode Toggle */}
         <button
-          onClick={() => setActiveModule('copilot')}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-emerald-950 to-teal-950 hover:from-emerald-900 hover:to-teal-900 border border-emerald-700/50 rounded-lg text-xs text-emerald-300 transition-all shadow-sm"
-          title="Open AI Copilot for Narratives, Anomaly Explanations & Gap Analysis"
+          onClick={toggleTheme}
+          className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200 transition-all shadow-sm focus-visible:outline-none"
+          title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+          aria-label="Toggle Dark and Light Mode"
         >
-          <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="hidden sm:inline font-medium">AI Copilot</span>
-        </button>
-
-        {/* Public Corporate Landing Portal */}
-        <button
-          onClick={() => {
-            setActiveModule('overview');
-            setActiveSubtab('hero-landing');
-          }}
-          className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-200 transition-colors"
-          title="Open Public ESG & Impact Portal"
-        >
-          <Globe className="w-3.5 h-3.5 text-sky-400" />
-          <span>Public Portal</span>
+          {theme === 'dark' ? (
+            <>
+              <Sun className="w-3.5 h-3.5 text-amber-400" />
+              <span>Light Mode</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-3.5 h-3.5 text-sky-400" />
+              <span>Dark Mode</span>
+            </>
+          )}
         </button>
 
         {/* Guided Tour Trigger */}

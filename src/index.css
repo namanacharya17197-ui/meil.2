@@ -39,3 +39,227 @@
     color: #0f172a !important;
   }
 }
+
+/* ==============================================================================
+   LIGHT MODE THEME SYSTEM
+   ============================================================================== */
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light main {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light .bg-slate-950 {
+  background-color: #ffffff !important;
+}
+
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/50,
+html.light .bg-slate-950\/40 {
+  background-color: #f8fafc !important;
+}
+
+html.light .bg-slate-900 {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light .bg-slate-900\/95,
+html.light .bg-slate-900\/80 {
+  background-color: #ffffff !important;
+}
+
+html.light .bg-slate-800,
+html.light .bg-slate-800\/80,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/40 {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-800\/80:hover,
+html.light .hover\:bg-slate-800\/40:hover {
+  background-color: #e2e8f0 !important;
+}
+
+html.light .border-slate-800,
+html.light .border-slate-700,
+html.light .border-slate-700\/80,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/60 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .text-white,
+html.light .text-slate-100 {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-200,
+html.light .text-slate-300 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #10b981 !important;
+  background-color: #ffffff !important;
+}
+
+html.light table th {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+html.light tr:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Light Mode Pills, Badges & Alert Surfaces */
+html.light .bg-emerald-950,
+html.light .bg-emerald-950\/80,
+html.light .bg-emerald-950\/60,
+html.light .bg-emerald-950\/50,
+html.light .bg-emerald-950\/40 {
+  background-color: #ecfdf5 !important;
+}
+
+html.light .text-emerald-300,
+html.light .text-emerald-400 {
+  color: #059669 !important;
+}
+
+html.light .border-emerald-800,
+html.light .border-emerald-800\/80,
+html.light .border-emerald-800\/60,
+html.light .border-emerald-700 {
+  border-color: #a7f3d0 !important;
+}
+
+html.light .bg-amber-950,
+html.light .bg-amber-950\/80,
+html.light .bg-amber-950\/40,
+html.light .bg-amber-950\/30,
+html.light .bg-amber-950\/20 {
+  background-color: #fffbeb !important;
+}
+
+html.light .text-amber-300,
+html.light .text-amber-400 {
+  color: #d97706 !important;
+}
+
+html.light .border-amber-800,
+html.light .border-amber-800\/80,
+html.light .border-amber-800\/60 {
+  border-color: #fde68a !important;
+}
+
+html.light .bg-blue-950,
+html.light .bg-blue-950\/80,
+html.light .bg-blue-950\/60 {
+  background-color: #eff6ff !important;
+}
+
+html.light .text-blue-300,
+html.light .text-blue-400 {
+  color: #2563eb !important;
+}
+
+html.light .border-blue-800 {
+  border-color: #bfdbfe !important;
+}
+
+html.light .bg-purple-950,
+html.light .bg-purple-950\/80,
+html.light .bg-purple-950\/40,
+html.light .bg-purple-950\/30 {
+  background-color: #faf5ff !important;
+}
+
+html.light .text-purple-300,
+html.light .text-purple-400 {
+  color: #7c3aed !important;
+}
+
+html.light .border-purple-800 {
+  border-color: #e9d5ff !important;
+}
+
+html.light .bg-cyan-950,
+html.light .bg-cyan-950\/80,
+html.light .bg-cyan-950\/40,
+html.light .bg-cyan-950\/30 {
+  background-color: #ecfeff !important;
+}
+
+html.light .text-cyan-300,
+html.light .text-cyan-400 {
+  color: #0891b2 !important;
+}
+
+html.light .border-cyan-800 {
+  border-color: #a5f3fc !important;
+}
+
+html.light .bg-rose-950,
+html.light .bg-rose-950\/80,
+html.light .bg-rose-950\/60,
+html.light .bg-red-950,
+html.light .bg-red-950\/80,
+html.light .bg-red-950\/20 {
+  background-color: #fff1f2 !important;
+}
+
+html.light .text-rose-300,
+html.light .text-rose-400,
+html.light .text-red-200,
+html.light .text-red-300,
+html.light .text-red-400 {
+  color: #e11d48 !important;
+}
+
+html.light .border-rose-800,
+html.light .border-red-800,
+html.light .border-red-800\/60 {
+  border-color: #fecdd3 !important;
+}
+

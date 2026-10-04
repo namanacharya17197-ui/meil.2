@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import {
   UserRole,
   ReportingCycle,
@@ -109,6 +109,10 @@ interface EsgContextType {
   auditTrailRecords: AuditTrailRecord[];
   addAuditTrailRecord: (record: Omit<AuditTrailRecord, 'id' | 'timestamp'>) => Promise<AuditTrailRecord>;
   organizationHierarchy: GroupNode;
+  // Theme Controls
+  theme: 'dark' | 'light';
+  toggleTheme: () => void;
+  setTheme: (theme: 'dark' | 'light') => void;
 }
 
 const EsgContext = createContext<EsgContextType | undefined>(undefined);
@@ -132,6 +136,32 @@ export const EsgProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return sessionStorage.getItem('meil_esg_authenticated') === 'true';
   });
+
+  const [theme, setThemeState] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('meil_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return 'dark';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+      root.classList.add('dark');
+    }
+    localStorage.setItem('meil_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const setTheme = (t: 'dark' | 'light') => {
+    setThemeState(t);
+  };
   const [currentUser, setCurrentUser] = useState<{
     name: string;
     email: string;
@@ -544,6 +574,9 @@ export const EsgProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         auditTrailRecords,
         addAuditTrailRecord,
         organizationHierarchy,
+        theme,
+        toggleTheme,
+        setTheme,
       }}
     >
       {children}
