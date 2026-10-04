@@ -20,6 +20,7 @@ import { OrgHierarchyView } from './components/modules/governance/OrgHierarchyVi
 import { DataCollectionView } from './components/modules/collection/DataCollectionView';
 import { AnalyticsEngineView } from './components/modules/analytics/AnalyticsEngineView';
 import { AssuranceWorkflowView } from './components/modules/assurance/AssuranceWorkflowView';
+import { EsgCalculatorHubView } from './components/modules/calculator/EsgCalculatorHubView';
 import { AiCopilotView } from './components/modules/copilot/AiCopilotView';
 import { AdminMastersView } from './components/modules/admin/AdminMastersView';
 
@@ -50,6 +51,9 @@ const MainLayout: React.FC = () => {
 
       case 'collection':
         return <DataCollectionView />;
+
+      case 'calculator':
+        return <EsgCalculatorHubView />;
 
       case 'analytics':
         return <AnalyticsEngineView />;

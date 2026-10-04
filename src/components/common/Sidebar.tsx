@@ -21,6 +21,10 @@ import {
   Sliders,
   PanelLeftClose,
   PanelLeft,
+  Calculator,
+  Droplets,
+  Gauge,
+  Layers,
 } from 'lucide-react';
 
 interface NavModule {
@@ -85,6 +89,19 @@ export const Sidebar: React.FC = () => {
         { id: 'section-a', label: 'Section A: General', icon: FileText },
         { id: 'section-b', label: 'Section B: Management', icon: FileCheck2 },
         { id: 'section-c', label: 'Section C: Principles (P1-P9)', icon: BarChart3 },
+      ],
+    },
+    {
+      id: 'calculator',
+      title: 'ESG Calculator Hub',
+      icon: Calculator,
+      badge: '5 Tools',
+      subtabs: [
+        { id: 'scope-emissions', label: 'Scope 1, 2, 3 Emissions', icon: Flame },
+        { id: 'decarbonization-simulator', label: 'Decarbonization Abatement', icon: Sparkles },
+        { id: 'water-calculator', label: 'Water Balance & ZLD', icon: Droplets },
+        { id: 'material-embodied', label: 'Embodied Carbon (EPD)', icon: Layers },
+        { id: 'intensity-benchmarking', label: 'Sectoral Benchmarks', icon: Gauge },
       ],
     },
     {
