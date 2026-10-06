@@ -19,7 +19,6 @@ import {
   Calendar,
   AlertTriangle,
   Clock,
-  ArrowRight,
 } from 'lucide-react';
 
 interface ProjectSpotlight {
@@ -148,44 +147,6 @@ export const LandingView: React.FC = () => {
   return (
     <div className="w-full bg-[#f8faf9] text-[#191c1c] font-sans antialiased overflow-x-hidden">
       {/* ============================================================================== */}
-      {/* 0. ENTERPRISE ACCESS ANNOUNCEMENT RIBBON */}
-      {/* ============================================================================== */}
-      <div className="bg-[#0b1f33] text-slate-200 border-b border-slate-800 text-[11px] py-2 px-6 lg:px-10 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="inline-flex items-center gap-1.5 font-bold text-emerald-300 bg-emerald-950/90 px-2.5 py-0.5 rounded-full border border-emerald-700/60 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            ENTERPRISE ESG CONNECT READY
-          </span>
-          <span className="text-slate-300 hidden sm:inline">
-            Demo Account Pre-configured: <strong className="text-white font-mono bg-black/40 px-1.5 py-0.5 rounded">cso@meilgroup.com</strong> · Password: <strong className="text-white font-mono bg-black/40 px-1.5 py-0.5 rounded">meil@2026</strong>
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          {!isAuthenticated ? (
-            <button
-              onClick={() => setIsLoginModalOpen(true)}
-              className="text-emerald-400 hover:text-emerald-300 font-bold transition-colors flex items-center gap-1 bg-emerald-950/40 hover:bg-emerald-950/70 border border-emerald-800/60 px-2.5 py-0.5 rounded-md"
-            >
-              <span>⚡ 1-Click Sign In (CSO / Admin)</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-slate-300">
-                Logged in as: <strong className="text-emerald-400">{currentUser?.name}</strong> ({currentUser?.role})
-              </span>
-              <button
-                onClick={() => logout()}
-                className="text-rose-400 hover:text-rose-300 font-semibold underline text-xs ml-2 cursor-pointer"
-              >
-                Log Out
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ============================================================================== */}
       {/* 1. TOP CORPORATE STICKY HEADER */}
       {/* ============================================================================== */}
       <header className="sticky top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#c4c6cd]/50 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
@@ -287,24 +248,6 @@ export const LandingView: React.FC = () => {
                 >
                   <Lock className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Log In</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      setIsLoginModalOpen(true);
-                    } else {
-                      setActiveModule('overview');
-                      setActiveSubtab('dashboard');
-                    }
-                  }}
-                  className="bg-[#b0f0ce]/40 text-[#0e5138] border border-[#0e5138]/20 hover:bg-[#0e5138] hover:text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all hidden sm:flex items-center gap-1.5 shadow-sm"
-                >
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0e5138] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0e5138]"></span>
-                  </span>
-                  <span>Live Dashboard</span>
                 </button>
               </>
             )}

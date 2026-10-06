@@ -72,8 +72,6 @@ export const Sidebar: React.FC = () => {
         { id: 'dashboard', label: 'Executive Dashboard', icon: BarChart3 },
         { id: 'gis-map', label: 'Infrastructure GIS Map', icon: Globe },
         { id: 'sdg-heatmap', label: 'SDG Heatmap & Targets', icon: Flame },
-        { id: 'hero-landing', label: 'Public Portal / Landing', icon: Globe },
-        { id: 'gateway', label: 'Enterprise Gateway / Login', icon: Lock },
       ],
     },
     {
