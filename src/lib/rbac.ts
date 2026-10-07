@@ -6,9 +6,15 @@ export const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
     role: 'Group ESG Admin',
     displayName: 'Group ESG Admin',
     title: 'Chief Sustainability Officer',
-    defaultModule: 'overview',
-    defaultSubtab: 'dashboard',
+    defaultModule: 'dashboard',
+    defaultSubtab: 'overview',
     allowedModules: [
+      'dashboard',
+      'reporting',
+      'workflow',
+      'validation',
+      'audit',
+      'export',
       'overview',
       'governance',
       'collection',
@@ -208,6 +214,123 @@ export const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       title: 'Independent Board Director & ESG Committee Chair',
     },
   },
+
+  'Sustainability Lead (Admin)': {
+    role: 'Sustainability Lead (Admin)',
+    displayName: 'Sustainability Lead (Admin)',
+    title: 'Director of Sustainability & ESG Compliance',
+    defaultModule: 'dashboard',
+    defaultSubtab: 'overview',
+    allowedModules: [
+      'dashboard',
+      'reporting',
+      'workflow',
+      'validation',
+      'audit',
+      'export',
+      'overview',
+      'collection',
+      'governance',
+      'calculator',
+      'analytics',
+      'assurance',
+    ],
+    allowedSubtabs: {},
+    permissions: [
+      'view',
+      'create',
+      'edit',
+      'delete',
+      'upload',
+      'download',
+      'approve',
+      'reject',
+      'export',
+      'lock',
+      'unlock',
+      'audit_comment',
+      'recalculate',
+    ],
+    defaultScope: {
+      organization: 'MEIL Group Global',
+      description: 'Conglomerate-wide SEBI BRSR Oversight & Statutory Assurance',
+    },
+    sampleUser: {
+      id: 'usr-lead-01',
+      name: 'Dr. Anand Verma',
+      email: 'anand.verma@meilgroup.com',
+      title: 'Sustainability Lead (Admin)',
+    },
+  },
+
+  'Plant 1 Head (Operations)': {
+    role: 'Plant 1 Head (Operations)',
+    displayName: 'Plant 1 Head (Operations)',
+    title: 'VP Operations & Infrastructure (Plant 1)',
+    defaultModule: 'reporting',
+    defaultSubtab: 'section-c',
+    allowedModules: ['dashboard', 'reporting', 'workflow', 'validation', 'audit'],
+    allowedSubtabs: {
+      reporting: ['section-c'],
+    },
+    permissions: ['view', 'create', 'edit', 'upload', 'download'],
+    defaultScope: {
+      organization: 'MEIL Infrastructure Ltd',
+      projectId: 'plant-1',
+      projectName: 'Plant 1 - Hyderabad Heavy Fabrications & Energy Complex',
+      description: 'Operational Scoping: Principle 6 (Energy, GHG Emissions & Water)',
+    },
+    sampleUser: {
+      id: 'usr-plant1-01',
+      name: 'Rajesh Sharma',
+      email: 'r.sharma@meilinfra.com',
+      title: 'Plant 1 Head (Operations)',
+    },
+  },
+
+  'HR Lead': {
+    role: 'HR Lead',
+    displayName: 'HR Lead (Personnel & Wellbeing)',
+    title: 'Head of Human Resources & Labour Welfare',
+    defaultModule: 'reporting',
+    defaultSubtab: 'section-a',
+    allowedModules: ['dashboard', 'reporting', 'workflow', 'validation', 'audit'],
+    allowedSubtabs: {
+      reporting: ['section-a', 'section-c'],
+    },
+    permissions: ['view', 'create', 'edit', 'upload', 'download'],
+    defaultScope: {
+      organization: 'MEIL Human Resources & Labour Governance',
+      description: 'Department Scope: Section A (Workforce) & Principle 3 (Employee Wellbeing)',
+    },
+    sampleUser: {
+      id: 'usr-hr-01',
+      name: 'Pooja Sundaram',
+      email: 'pooja.s@meilgroup.com',
+      title: 'HR Lead (Personnel & Wellbeing)',
+    },
+  },
+
+  'Statutory Auditor': {
+    role: 'Statutory Auditor',
+    displayName: 'Statutory Auditor (ISAE 3000)',
+    title: 'Senior ESG Assurance Partner (Statutory)',
+    defaultModule: 'audit',
+    defaultSubtab: 'audit-trail',
+    allowedModules: ['dashboard', 'reporting', 'workflow', 'validation', 'audit', 'export'],
+    allowedSubtabs: {},
+    permissions: ['view', 'download', 'audit_comment', 'recalculate', 'export'],
+    defaultScope: {
+      organization: 'Independent Statutory Assurance (ISAE 3000 / AA1000)',
+      description: 'Read-Only Assurance Scope: Evidence Verification & BRSR Core Assurance',
+    },
+    sampleUser: {
+      id: 'usr-auditor-01',
+      name: 'KPMG Statutory Assurance',
+      email: 'partner@kpmg-assurance.com',
+      title: 'Statutory Auditor (ISAE 3000)',
+    },
+  },
 };
 
 /**
@@ -267,7 +390,7 @@ export function canModifyRecordStatus(role: UserRole, currentStatus: string): { 
     };
   }
 
-  if (role === 'Independent Auditor (ISAE 3000)' || role === 'Board Viewer') {
+  if (role === 'Independent Auditor (ISAE 3000)' || role === 'Board Viewer' || role === 'Statutory Auditor') {
     return {
       allowed: false,
       reason: `${role} accounts have strictly Read-Only access to original operational ESG logs.`,
@@ -289,7 +412,13 @@ export function isSiteInScope(
     division?: string;
   }
 ): boolean {
-  if (userRole === 'Group ESG Admin' || userRole === 'Board Viewer' || userRole === 'Independent Auditor (ISAE 3000)') {
+  if (
+    userRole === 'Group ESG Admin' ||
+    userRole === 'Board Viewer' ||
+    userRole === 'Independent Auditor (ISAE 3000)' ||
+    userRole === 'Sustainability Lead (Admin)' ||
+    userRole === 'Statutory Auditor'
+  ) {
     return true;
   }
 
@@ -362,5 +491,37 @@ export const PREDEFINED_USER_ACCOUNTS: Record<string, UserAccount> = {
     role: 'Board Viewer',
     title: 'Independent Board Director & ESG Committee Chair',
     scope: ROLE_CONFIGS['Board Viewer'].defaultScope,
+  },
+  'anand.verma@meilgroup.com': {
+    id: 'usr-lead-01',
+    name: 'Dr. Anand Verma',
+    email: 'anand.verma@meilgroup.com',
+    role: 'Sustainability Lead (Admin)',
+    title: 'Director of Sustainability & ESG Compliance',
+    scope: ROLE_CONFIGS['Sustainability Lead (Admin)'].defaultScope,
+  },
+  'r.sharma@meilinfra.com': {
+    id: 'usr-plant1-01',
+    name: 'Rajesh Sharma',
+    email: 'r.sharma@meilinfra.com',
+    role: 'Plant 1 Head (Operations)',
+    title: 'VP Operations & Infrastructure (Plant 1)',
+    scope: ROLE_CONFIGS['Plant 1 Head (Operations)'].defaultScope,
+  },
+  'pooja.s@meilgroup.com': {
+    id: 'usr-hr-01',
+    name: 'Pooja Sundaram',
+    email: 'pooja.s@meilgroup.com',
+    role: 'HR Lead',
+    title: 'Head of Human Resources & Labour Welfare',
+    scope: ROLE_CONFIGS['HR Lead'].defaultScope,
+  },
+  'partner@kpmg-assurance.com': {
+    id: 'usr-auditor-01',
+    name: 'KPMG Statutory Assurance',
+    email: 'partner@kpmg-assurance.com',
+    role: 'Statutory Auditor',
+    title: 'Senior ESG Assurance Partner (Statutory)',
+    scope: ROLE_CONFIGS['Statutory Auditor'].defaultScope,
   },
 };

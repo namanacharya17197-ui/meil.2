@@ -13,6 +13,9 @@ import {
   AuditTrailRecord,
   EmissionLogStatus,
   GroupNode,
+  BrsrFormData,
+  KpiAuditLog,
+  DepartmentWorkflow,
 } from '../types/esg';
 import {
   PermissionAction,
@@ -137,6 +140,26 @@ interface EsgContextType {
   theme: 'dark' | 'light';
   toggleTheme: () => void;
   setTheme: (theme: 'dark' | 'light') => void;
+  // SEBI BRSR Finale Killer Features & Interactive Engine
+  brsrFormData: BrsrFormData;
+  setBrsrFormData: React.Dispatch<React.SetStateAction<BrsrFormData>>;
+  updateBrsrField: (field: keyof BrsrFormData, value: number | string, reason?: string) => void;
+  resolveContradiction: (resolution: 'sync-insurance' | 'update-employees') => void;
+  convertElectricityKwhToGj: () => void;
+  saveScope1Justification: (justification: string) => void;
+  kpiAuditLogs: KpiAuditLog[];
+  addKpiAuditLog: (entry: Omit<KpiAuditLog, 'id' | 'timestamp'>) => void;
+  departmentWorkflows: DepartmentWorkflow[];
+  updateWorkflowStatus: (id: string, status: DepartmentWorkflow['status']) => void;
+  isEvidenceDrawerOpen: boolean;
+  setIsEvidenceDrawerOpen: (open: boolean) => void;
+  activeKpiForEvidence: { key: string; label: string; unit: string; currentValue: number | string; isCore: boolean } | null;
+  openEvidenceDrawerForKpi: (kpi: { key: string; label: string; unit: string; currentValue: number | string; isCore: boolean }) => void;
+  toggleAuditorVerification: (attachmentId: string) => void;
+  brsrCoreFilterOnly: boolean;
+  setBrsrCoreFilterOnly: (val: boolean) => void;
+  isContradictionModalOpen: boolean;
+  setIsContradictionModalOpen: (open: boolean) => void;
 }
 
 const EsgContext = createContext<EsgContextType | undefined>(undefined);
@@ -215,9 +238,337 @@ export const EsgProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [currentUser, currentRole]);
 
   const [emissionsLogs, setEmissionsLogs] = useState<EmissionsLog[]>(INITIAL_EMISSIONS_LOGS);
-  const [evidenceAttachments, setEvidenceAttachments] = useState<EvidenceAttachment[]>(INITIAL_EVIDENCE_ATTACHMENTS);
+
+  // Initial Seed for BRSR Core Evidence Attachments
+  const DEFAULT_BRSR_ATTACHMENTS: EvidenceAttachment[] = [
+    {
+      id: 'att-01',
+      kpiKey: 'sectionC_p6_scope1Mt',
+      kpiLabel: 'Scope 1 GHG Direct Emissions',
+      fileName: 'IOCL_HSD_Bulk_Bunker_Invoice_FY26.pdf',
+      fileSize: '1.4 MB',
+      fileUrl: '#',
+      uploadedBy: 'Rajesh Sharma',
+      role: 'Plant 1 Head (Operations)',
+      uploadedAt: 'Today, 09:15 AM',
+      invoiceNo: 'IOCL/POL/2026/09/8821',
+      meterReadingRef: 'Dispenser Flow Totalizer #4',
+      notes: 'Primary diesel receipt for excavators and auxiliary generator sets.',
+      verifiedByAuditor: true,
+      auditedAt: 'Today, 11:45 AM',
+      auditorName: 'S. Narayanan, KPMG Assurance',
+    },
+    {
+      id: 'att-02',
+      kpiKey: 'sectionC_p6_scope2Mt',
+      kpiLabel: 'Scope 2 Market-Based Electricity Emissions',
+      fileName: 'TSSPDCL_Substation_Energy_Bill_Q3.pdf',
+      fileSize: '2.8 MB',
+      fileUrl: '#',
+      uploadedBy: 'Rajesh Sharma',
+      role: 'Plant 1 Head (Operations)',
+      uploadedAt: 'Yesterday, 02:40 PM',
+      invoiceNo: 'DISCOM-HT-2026-9921',
+      meterReadingRef: 'Substation Feeder 132kV',
+      notes: 'CEA baseline grid factor (0.716 kg CO2e/kWh) applied.',
+      verifiedByAuditor: true,
+      auditedAt: 'Today, 12:10 PM',
+      auditorName: 'S. Narayanan, KPMG Assurance',
+    },
+    {
+      id: 'att-03',
+      kpiKey: 'sectionC_p6_electricityGj',
+      kpiLabel: 'Total Electricity Purchased & Consumed',
+      fileName: 'HT_Energy_Meter_Calibrated_Log.pdf',
+      fileSize: '890 KB',
+      fileUrl: '#',
+      uploadedBy: 'Rajesh Sharma',
+      role: 'Plant 1 Head (Operations)',
+      uploadedAt: '02 Oct 2026, 04:30 PM',
+      invoiceNo: 'CAL-MET-2026-08',
+      meterReadingRef: 'NABL Accredited Calibration Bench',
+      notes: 'Quarterly telemetry check matching CEA baseline norms.',
+      verifiedByAuditor: false,
+    },
+    {
+      id: 'att-04',
+      kpiKey: 'sectionC_p6_waterWithdrawalKl',
+      kpiLabel: 'Total Water Withdrawal by Source',
+      fileName: 'Industrial_Borewell_Telemetry_Log.pdf',
+      fileSize: '1.2 MB',
+      fileUrl: '#',
+      uploadedBy: 'Rajesh Sharma',
+      role: 'Plant 1 Head (Operations)',
+      uploadedAt: '03 Oct 2026, 11:00 AM',
+      invoiceNo: 'CGWA/NOC/2026/410',
+      meterReadingRef: 'Ultrasonic Flowmeter #B1',
+      notes: 'Groundwater abstraction telemetry within statutory CGWA limits.',
+      verifiedByAuditor: true,
+      auditedAt: 'Today, 01:20 PM',
+      auditorName: 'S. Narayanan, KPMG Assurance',
+    },
+    {
+      id: 'att-05',
+      kpiKey: 'sectionC_p3_healthInsurance',
+      kpiLabel: 'Employees Covered by Health Insurance',
+      fileName: 'ICICI_Lombard_Group_Health_Policy_Roster.pdf',
+      fileSize: '3.4 MB',
+      fileUrl: '#',
+      uploadedBy: 'Pooja Sundaram',
+      role: 'HR Lead',
+      uploadedAt: 'Today, 11:15 AM',
+      invoiceNo: 'POL-GMC-2026-778',
+      meterReadingRef: 'Policy Roster Schedule C',
+      notes: 'Includes temporary tunnel fabrication crew (1,450 enrolled).',
+      verifiedByAuditor: false,
+    },
+  ];
+
+  const [evidenceAttachments, setEvidenceAttachments] = useState<EvidenceAttachment[]>([
+    ...DEFAULT_BRSR_ATTACHMENTS,
+    ...INITIAL_EVIDENCE_ATTACHMENTS,
+  ]);
   const [auditTrailRecords, setAuditTrailRecords] = useState<AuditTrailRecord[]>(INITIAL_AUDIT_TRAIL_RECORDS);
   const organizationHierarchy = ORGANIZATION_HIERARCHY;
+
+  // SEBI BRSR Interactive Data State (Finale Killer Features)
+  const [brsrFormData, setBrsrFormData] = useState<BrsrFormData>({
+    sectionA_employees: 1200,
+    sectionA_operatingPlants: 3,
+    sectionC_p3_healthInsurance: 1450, // Triggers Monday Morning Contradiction vs 1200!
+    sectionC_p3_fatalities: 0,
+    sectionC_p3_ltifr: 0.14,
+    sectionC_p6_electricityGj: 4120,
+    sectionC_p6_electricityKwhRaw: 1144450,
+    sectionC_p6_fuelDieselKl: 320,
+    sectionC_p6_scope1Mt: 1240, // FY26 vs FY25 (850 MT) -> +45.9% YoY anomaly (>30%)!
+    sectionC_p6_scope1Justification: '',
+    sectionC_p6_scope2Mt: 820,
+    sectionC_p6_waterWithdrawalKl: 45200,
+    sectionC_p6_waterRecycledKl: 18400,
+    sectionC_p6_wasteGeneratedMt: 1860,
+  });
+
+  const [brsrCoreFilterOnly, setBrsrCoreFilterOnly] = useState<boolean>(false);
+  const [isContradictionModalOpen, setIsContradictionModalOpen] = useState<boolean>(false);
+  const [isEvidenceDrawerOpen, setIsEvidenceDrawerOpen] = useState<boolean>(false);
+  const [activeKpiForEvidence, setActiveKpiForEvidence] = useState<{
+    key: string;
+    label: string;
+    unit: string;
+    currentValue: number | string;
+    isCore: boolean;
+  } | null>(null);
+
+  const [kpiAuditLogs, setKpiAuditLogs] = useState<KpiAuditLog[]>([
+    {
+      id: 'log-01',
+      timestamp: 'Today, 02:15 PM IST',
+      kpiKey: 'sectionC_p6_scope1Mt',
+      kpiLabel: 'P6 Scope 1 Direct GHG Emissions',
+      previousValue: '850 MT CO2e (FY25)',
+      newValue: '1,240 MT CO2e (FY26)',
+      changedBy: 'Rajesh Sharma',
+      role: 'Plant 1 Head (Operations)',
+      reason: 'Commissioned additional diesel gen-sets during Phase 2 excavation grid outage.',
+    },
+    {
+      id: 'log-02',
+      timestamp: 'Today, 11:30 AM IST',
+      kpiKey: 'sectionC_p3_healthInsurance',
+      kpiLabel: 'P3 Employees Covered by Health Insurance',
+      previousValue: '1,180',
+      newValue: '1,450',
+      changedBy: 'Pooja Sundaram',
+      role: 'HR Lead',
+      reason: 'Enrolled contractual tunnel safety crew under corporate health policy.',
+    },
+    {
+      id: 'log-03',
+      timestamp: 'Yesterday, 04:45 PM IST',
+      kpiKey: 'sectionC_p6_electricityGj',
+      kpiLabel: 'P6 Electricity Consumption',
+      previousValue: '3,920 GJ',
+      newValue: '4,120 GJ',
+      changedBy: 'Rajesh Sharma',
+      role: 'Plant 1 Head (Operations)',
+      reason: 'Reconciled monthly electricity meter invoice from TSSPDCL substation.',
+    },
+  ]);
+
+  const [departmentWorkflows, setDepartmentWorkflows] = useState<DepartmentWorkflow[]>([
+    {
+      id: 'wf-1',
+      department: 'Human Resources & Wellbeing',
+      head: 'Pooja Sundaram',
+      role: 'HR Lead',
+      assignedSections: 'Section A (Workforce) · Principle 3 (Wellbeing) · Principle 5 (Human Rights)',
+      kpisCount: 14,
+      completedCount: 14,
+      status: 'Submitted',
+      deadline: '15 Oct 2026',
+      lastUpdated: 'Today, 11:30 AM',
+    },
+    {
+      id: 'wf-2',
+      department: 'Plant Operations & Infrastructure',
+      head: 'Rajesh Sharma',
+      role: 'Plant 1 Head (Operations)',
+      assignedSections: 'Principle 6 (Energy, GHG Emissions, Water, Circularity)',
+      kpisCount: 18,
+      completedCount: 14,
+      status: 'In Progress',
+      deadline: '20 Oct 2026',
+      lastUpdated: 'Today, 02:15 PM',
+    },
+    {
+      id: 'wf-3',
+      department: 'Legal, Compliance & Ethics',
+      head: 'Adv. V. Ramanathan',
+      role: 'Head of Legal & Statutory Affairs',
+      assignedSections: 'Section B (Policies) · Principle 1 (Anti-Bribery & Ethics)',
+      kpisCount: 12,
+      completedCount: 12,
+      status: 'Submitted',
+      deadline: '10 Oct 2026',
+      lastUpdated: '01 Oct 2026',
+    },
+    {
+      id: 'wf-4',
+      department: 'Procurement & Supply Chain',
+      head: 'Sunil Nair',
+      role: 'Chief Procurement Officer',
+      assignedSections: 'Principle 2 (Sustainable Inputs) · Principle 8 (Inclusive Growth & Scope 3)',
+      kpisCount: 10,
+      completedCount: 4,
+      status: 'Overdue',
+      deadline: '05 Oct 2026',
+      lastUpdated: '04 Oct 2026',
+    },
+  ]);
+
+  const addKpiAuditLog = (entry: Omit<KpiAuditLog, 'id' | 'timestamp'>) => {
+    const newLog: KpiAuditLog = {
+      ...entry,
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
+    };
+    setKpiAuditLogs((prev) => [newLog, ...prev]);
+  };
+
+  const updateBrsrField = (field: keyof BrsrFormData, value: number | string, reason?: string) => {
+    setBrsrFormData((prev) => {
+      const prevVal = prev[field];
+      addKpiAuditLog({
+        kpiKey: String(field),
+        kpiLabel: String(field),
+        previousValue: String(prevVal),
+        newValue: String(value),
+        changedBy: currentUser?.name || 'Authorized User',
+        role: currentRole,
+        reason: reason || 'Direct value update via SEBI BRSR Data Entry form',
+      });
+      return { ...prev, [field]: value };
+    });
+  };
+
+  const resolveContradiction = (resolution: 'sync-insurance' | 'update-employees') => {
+    if (resolution === 'sync-insurance') {
+      const targetVal = brsrFormData.sectionA_employees;
+      setBrsrFormData((prev) => ({
+        ...prev,
+        sectionC_p3_healthInsurance: targetVal,
+      }));
+      addKpiAuditLog({
+        kpiKey: 'sectionC_p3_healthInsurance',
+        kpiLabel: 'P3 Health Insurance Coverage (Reconciled)',
+        previousValue: `${brsrFormData.sectionC_p3_healthInsurance}`,
+        newValue: `${targetVal}`,
+        changedBy: currentUser?.name || 'Sustainability Lead',
+        role: currentRole,
+        reason: `Cross-Section Reconciliation: Synced P3 health insurance to match Section A permanent workforce (${targetVal}).`,
+      });
+    } else {
+      const targetVal = brsrFormData.sectionC_p3_healthInsurance;
+      setBrsrFormData((prev) => ({
+        ...prev,
+        sectionA_employees: targetVal,
+      }));
+      addKpiAuditLog({
+        kpiKey: 'sectionA_employees',
+        kpiLabel: 'Section A Total Permanent Employees (Reconciled)',
+        previousValue: `${brsrFormData.sectionA_employees}`,
+        newValue: `${targetVal}`,
+        changedBy: currentUser?.name || 'Sustainability Lead',
+        role: currentRole,
+        reason: `Cross-Section Reconciliation: Updated Section A employee headcount to match verified health insurance roll (${targetVal}).`,
+      });
+    }
+    setIsContradictionModalOpen(false);
+  };
+
+  const convertElectricityKwhToGj = () => {
+    const rawKwh = brsrFormData.sectionC_p6_electricityKwhRaw || 1144450;
+    const gjVal = Math.round(rawKwh / 277.778);
+    setBrsrFormData((prev) => ({
+      ...prev,
+      sectionC_p6_electricityGj: gjVal,
+      sectionC_p6_electricityKwhRaw: 0,
+    }));
+    addKpiAuditLog({
+      kpiKey: 'sectionC_p6_electricityGj',
+      kpiLabel: 'P6 Electricity Unit Standardisation',
+      previousValue: `${rawKwh.toLocaleString()} kWh`,
+      newValue: `${gjVal.toLocaleString()} GJ`,
+      changedBy: currentUser?.name || 'Plant 1 Operations',
+      role: currentRole,
+      reason: 'Statutory unit conversion from kWh to Gigajoules (GJ) using standard SEBI BRSR formula (1 GJ = 277.78 kWh).',
+    });
+  };
+
+  const saveScope1Justification = (justification: string) => {
+    setBrsrFormData((prev) => ({
+      ...prev,
+      sectionC_p6_scope1Justification: justification,
+    }));
+    addKpiAuditLog({
+      kpiKey: 'sectionC_p6_scope1Mt',
+      kpiLabel: 'P6 Scope 1 YoY Anomaly Justification',
+      previousValue: 'Unjustified (+45.9% YoY)',
+      newValue: 'Justified & Documented',
+      changedBy: currentUser?.name || 'Plant 1 Head (Operations)',
+      role: currentRole,
+      reason: justification,
+    });
+  };
+
+  const openEvidenceDrawerForKpi = (kpi: { key: string; label: string; unit: string; currentValue: number | string; isCore: boolean }) => {
+    setActiveKpiForEvidence(kpi);
+    setIsEvidenceDrawerOpen(true);
+  };
+
+  const toggleAuditorVerification = (attachmentId: string) => {
+    setEvidenceAttachments((prev) =>
+      prev.map((att) => {
+        if (att.id === attachmentId) {
+          const nextVerified = !att.verifiedByAuditor;
+          return {
+            ...att,
+            verifiedByAuditor: nextVerified,
+            auditedAt: nextVerified ? 'Today, ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST' : undefined,
+            auditorName: nextVerified ? (currentUser?.name || 'KPMG Statutory Assurance') : undefined,
+          };
+        }
+        return att;
+      })
+    );
+  };
+
+  const updateWorkflowStatus = (id: string, status: DepartmentWorkflow['status']) => {
+    setDepartmentWorkflows((prev) =>
+      prev.map((wf) => (wf.id === id ? { ...wf, status, lastUpdated: 'Just now' } : wf))
+    );
+  };
 
   // RBAC Action Permission Checker
   const canPerformAction = (action: PermissionAction): boolean => {
@@ -892,6 +1243,26 @@ export const EsgProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         theme,
         toggleTheme,
         setTheme,
+        // SEBI BRSR Interactive Engine
+        brsrFormData,
+        setBrsrFormData,
+        updateBrsrField,
+        resolveContradiction,
+        convertElectricityKwhToGj,
+        saveScope1Justification,
+        kpiAuditLogs,
+        addKpiAuditLog,
+        departmentWorkflows,
+        updateWorkflowStatus,
+        isEvidenceDrawerOpen,
+        setIsEvidenceDrawerOpen,
+        activeKpiForEvidence,
+        openEvidenceDrawerForKpi,
+        toggleAuditorVerification,
+        brsrCoreFilterOnly,
+        setBrsrCoreFilterOnly,
+        isContradictionModalOpen,
+        setIsContradictionModalOpen,
       }}
     >
       {children}

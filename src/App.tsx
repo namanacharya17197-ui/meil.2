@@ -25,6 +25,15 @@ import { EsgCalculatorHubView } from './components/modules/calculator/EsgCalcula
 import { AiCopilotView } from './components/modules/copilot/AiCopilotView';
 import { AdminMastersView } from './components/modules/admin/AdminMastersView';
 
+// Core BRSR Reporting & Assurance Modules
+import { BrsrExecutiveDashboardView } from './components/modules/dashboard/BrsrExecutiveDashboardView';
+import { BrsrPortalView } from './components/modules/reporting/BrsrPortalView';
+import { DelegationWorkflowView } from './components/modules/workflow/DelegationWorkflowView';
+import { ValidationEngineView } from './components/modules/validation/ValidationEngineView';
+import { AuditEvidenceView } from './components/modules/audit/AuditEvidenceView';
+import { BrsrExportReportView } from './components/modules/export/BrsrExportReportView';
+import { EvidenceLockerDrawer } from './components/common/EvidenceLockerDrawer';
+
 const MainLayout: React.FC = () => {
   const { activeModule, activeSubtab, isAuthenticated, isModuleAuthorized, isSubtabAuthorized } = useEsg();
 
@@ -53,11 +62,29 @@ const MainLayout: React.FC = () => {
     }
 
     switch (activeModule) {
+      case 'dashboard':
+        return <BrsrExecutiveDashboardView />;
+
+      case 'reporting':
+        return <BrsrPortalView />;
+
+      case 'workflow':
+        return <DelegationWorkflowView />;
+
+      case 'validation':
+        return <ValidationEngineView />;
+
+      case 'audit':
+        return <AuditEvidenceView />;
+
+      case 'export':
+        return <BrsrExportReportView />;
+
       case 'overview':
         if (activeSubtab === 'gis-map') return <GisMapView />;
         if (activeSubtab === 'sdg-heatmap') return <SdgHeatmapView />;
         if (activeSubtab === 'hero-landing') return <LandingView />;
-        return <DashboardView />;
+        return <BrsrExecutiveDashboardView />;
 
       case 'governance':
         return <OrgHierarchyView />;
@@ -81,7 +108,7 @@ const MainLayout: React.FC = () => {
         return <AdminMastersView />;
 
       default:
-        return <DashboardView />;
+        return <BrsrExecutiveDashboardView />;
     }
   };
 
@@ -100,7 +127,8 @@ const MainLayout: React.FC = () => {
         </main>
       </div>
 
-      {/* Interactive Tour & Login Modal */}
+      {/* Interactive Tour & Login Modal & Evidence Locker Drawer */}
+      <EvidenceLockerDrawer />
       <GuidedTour />
       <LoginModal />
     </div>

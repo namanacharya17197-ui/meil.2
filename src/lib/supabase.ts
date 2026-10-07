@@ -314,10 +314,10 @@ export async function syncEmissionLogToCloud(log: {
 }
 
 export async function syncEvidenceToCloud(evidence: {
-  emission_log_id: string;
-  file_url: string;
+  emission_log_id?: string;
+  file_url?: string;
   file_name: string;
-  document_type: string;
+  document_type?: string;
   uploaded_by: string;
   verification_hash?: string;
 }) {

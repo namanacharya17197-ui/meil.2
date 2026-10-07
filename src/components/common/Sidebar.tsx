@@ -26,6 +26,10 @@ import {
   Gauge,
   Layers,
   ShieldCheck,
+  Users,
+  AlertTriangle,
+  Download,
+  Scale,
 } from 'lucide-react';
 
 interface NavModule {
@@ -64,6 +68,59 @@ export const Sidebar: React.FC = () => {
   const openAnomaliesCount = anomalies.filter((a) => a.status === 'Open').length;
 
   const rawModules: NavModule[] = [
+    {
+      id: 'dashboard',
+      title: 'Dashboard (/dashboard)',
+      icon: BarChart3,
+      subtabs: [
+        { id: 'overview', label: 'Completion & Readiness', icon: BarChart3 },
+      ],
+    },
+    {
+      id: 'reporting',
+      title: 'BRSR Portal (/reporting)',
+      icon: FileSpreadsheet,
+      badge: 'Core',
+      subtabs: [
+        { id: 'section-a', label: 'Section A: General', icon: FileText },
+        { id: 'section-b', label: 'Section B: Governance', icon: FileCheck2 },
+        { id: 'section-c', label: 'Section C: Principles 1-9', icon: Flame },
+      ],
+    },
+    {
+      id: 'workflow',
+      title: 'Delegation & Workflow',
+      icon: Users,
+      subtabs: [
+        { id: 'assignments', label: 'Department Assignments', icon: CheckSquare },
+      ],
+    },
+    {
+      id: 'validation',
+      title: 'Validation & Exceptions',
+      icon: AlertTriangle,
+      badge: 'Alerts',
+      subtabs: [
+        { id: 'reconciliation', label: 'Cross-Reconciliation & Anomalies', icon: Scale },
+      ],
+    },
+    {
+      id: 'audit',
+      title: 'Audit & Evidence (/audit)',
+      icon: Lock,
+      subtabs: [
+        { id: 'bills', label: 'Bills & Evidence Locker', icon: FileText },
+        { id: 'audit-trail', label: 'Change History Logs', icon: Lock },
+      ],
+    },
+    {
+      id: 'export',
+      title: 'Generate Report (/export)',
+      icon: Download,
+      subtabs: [
+        { id: 'sebi-filing', label: 'SEBI BRSR PDF/Excel', icon: Download },
+      ],
+    },
     {
       id: 'overview',
       title: 'Overview & Home',

@@ -4,7 +4,79 @@ export type UserRole =
   | 'Business Unit Reviewer'
   | 'Project Data Entry User'
   | 'Independent Auditor (ISAE 3000)'
-  | 'Board Viewer';
+  | 'Board Viewer'
+  | 'Sustainability Lead (Admin)'
+  | 'Plant 1 Head (Operations)'
+  | 'HR Lead'
+  | 'Statutory Auditor';
+
+export interface EvidenceAttachment {
+  id: string;
+  kpiKey?: string;
+  kpiLabel?: string;
+  fileName: string;
+  fileSize?: string;
+  fileSizeBytes?: number;
+  fileUrl?: string;
+  documentType?: string;
+  uploadedBy: string;
+  role?: string;
+  uploadedAt: string;
+  invoiceNo?: string;
+  meterReadingRef?: string;
+  notes?: string;
+  verifiedByAuditor?: boolean;
+  auditedAt?: string;
+  auditorName?: string;
+  emissionLogId?: string;
+  verificationHash?: string;
+  ocrConfidencePct?: number;
+}
+
+export interface KpiAuditLog {
+  id: string;
+  timestamp: string;
+  kpiKey: string;
+  kpiLabel: string;
+  previousValue: string;
+  newValue: string;
+  changedBy: string;
+  role: string;
+  reason: string;
+}
+
+export interface DepartmentWorkflow {
+  id: string;
+  department: string;
+  head: string;
+  role: string;
+  assignedSections: string;
+  kpisCount: number;
+  completedCount: number;
+  status: 'Submitted' | 'In Progress' | 'Overdue';
+  deadline: string;
+  lastUpdated: string;
+}
+
+export interface BrsrFormData {
+  // Section A
+  sectionA_employees: number;
+  sectionA_operatingPlants: number;
+  // Section C - Principle 3
+  sectionC_p3_healthInsurance: number;
+  sectionC_p3_fatalities: number;
+  sectionC_p3_ltifr: number;
+  // Section C - Principle 6
+  sectionC_p6_electricityGj: number;
+  sectionC_p6_electricityKwhRaw?: number;
+  sectionC_p6_fuelDieselKl: number;
+  sectionC_p6_scope1Mt: number;
+  sectionC_p6_scope1Justification: string;
+  sectionC_p6_scope2Mt: number;
+  sectionC_p6_waterWithdrawalKl: number;
+  sectionC_p6_waterRecycledKl: number;
+  sectionC_p6_wasteGeneratedMt: number;
+}
 
 export type ReportingCycle = 'FY 2024-25 (Active)' | 'FY 2025-26 (Draft)' | 'FY 2023-24 (Archived)';
 
@@ -160,19 +232,6 @@ export interface EmissionsLog {
   auditorComments?: string;
   verifiedAt?: string;
   verifiedBy?: string;
-}
-
-export interface EvidenceAttachment {
-  id: string;
-  emissionLogId: string;
-  fileUrl: string;
-  fileName: string;
-  documentType: DocumentType;
-  uploadedBy: string;
-  uploadedAt: string;
-  fileSizeBytes?: number;
-  verificationHash?: string;
-  ocrConfidencePct?: number;
 }
 
 export interface AuditTrailRecord {

@@ -21,6 +21,11 @@ import {
   Moon,
   Lock,
   Tag,
+  BarChart3,
+  FileSpreadsheet,
+  Users,
+  Paperclip,
+  Download,
 } from 'lucide-react';
 
 const REPORTING_CYCLES: ReportingCycle[] = [
@@ -39,6 +44,7 @@ export const Header: React.FC = () => {
     sites,
     scopedSites,
     setIsTourOpen,
+    activeModule,
     setActiveModule,
     setActiveSubtab,
     setIsLoginModalOpen,
@@ -48,16 +54,20 @@ export const Header: React.FC = () => {
     logout,
     theme,
     toggleTheme,
+    brsrFormData,
+    switchDemoRole,
   } = useEsg();
 
   const [siteDropdownOpen, setSiteDropdownOpen] = useState(false);
   const [siteSearch, setSiteSearch] = useState('');
   const [cycleDropdownOpen, setCycleDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
   const siteDropdownRef = useRef<HTMLDivElement>(null);
   const cycleDropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const roleDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -69,6 +79,9 @@ export const Header: React.FC = () => {
       }
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
         setProfileDropdownOpen(false);
+      }
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target as Node)) {
+        setRoleDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -94,8 +107,8 @@ export const Header: React.FC = () => {
       {/* Left: MEIL Brand & Site Scoping */}
       <div className="flex items-center gap-3">
         <button
-          onClick={() => setActiveModule('overview')}
-          className="flex items-center gap-3 text-left group focus-visible:outline-none cursor-pointer"
+          onClick={() => setActiveModule('dashboard')}
+          className="flex items-center gap-3 text-left group focus-visible:outline-none cursor-pointer shrink-0"
         >
           {/* Official MEIL Logo */}
           <div className="bg-black/80 px-2 py-1 rounded-lg border border-slate-700/80 shadow-inner flex items-center group-hover:border-slate-500 transition-colors">
@@ -108,7 +121,7 @@ export const Header: React.FC = () => {
               </span>
             </div>
             <p className="text-[11px] text-slate-400 leading-none mt-0.5">
-              Megha Engineering & Infrastructures Ltd · RBAC Governed
+              Megha Engineering &amp; Infrastructures Ltd · SEBI BRSR
             </p>
           </div>
         </button>
@@ -268,8 +281,179 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Center / Right Controls: Cycle, Demo Simulator, Theme, Tour, Profile */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      {/* CENTER: Main Navigation Navbar (The 6 Tabs requested) */}
+      <nav className="hidden lg:flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80 shadow-inner">
+        <button
+          onClick={() => setActiveModule('dashboard')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            activeModule === 'dashboard'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <BarChart3 className="w-3.5 h-3.5" />
+          <span>Dashboard</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveModule('reporting');
+            setActiveSubtab('section-c');
+          }}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            activeModule === 'reporting'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <FileSpreadsheet className="w-3.5 h-3.5" />
+          <span>BRSR Portal</span>
+        </button>
+
+        <button
+          onClick={() => setActiveModule('workflow')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            activeModule === 'workflow'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5" />
+          <span>Workflow</span>
+        </button>
+
+        <button
+          onClick={() => setActiveModule('validation')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            activeModule === 'validation'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <AlertTriangle className={`w-3.5 h-3.5 ${
+            (brsrFormData.sectionC_p3_healthInsurance > brsrFormData.sectionA_employees ||
+             (brsrFormData.sectionC_p6_electricityKwhRaw || 0) > 0 ||
+             (brsrFormData.sectionC_p6_scope1Mt > 850 * 1.3 && !brsrFormData.sectionC_p6_scope1Justification))
+              ? 'text-amber-400'
+              : ''
+          }`} />
+          <span>Validation</span>
+          {(brsrFormData.sectionC_p3_healthInsurance > brsrFormData.sectionA_employees ||
+            (brsrFormData.sectionC_p6_electricityKwhRaw || 0) > 0 ||
+            (brsrFormData.sectionC_p6_scope1Mt > 850 * 1.3 && !brsrFormData.sectionC_p6_scope1Justification)) && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 font-mono">
+              {(brsrFormData.sectionC_p3_healthInsurance > brsrFormData.sectionA_employees ? 1 : 0) +
+               ((brsrFormData.sectionC_p6_electricityKwhRaw || 0) > 0 ? 1 : 0) +
+               (brsrFormData.sectionC_p6_scope1Mt > 850 * 1.3 && !brsrFormData.sectionC_p6_scope1Justification ? 1 : 0)}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveModule('audit')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            activeModule === 'audit'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <Paperclip className="w-3.5 h-3.5" />
+          <span>Audit &amp; Evidence</span>
+        </button>
+
+        <button
+          onClick={() => setActiveModule('export')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            activeModule === 'export'
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>Generate Report</span>
+        </button>
+      </nav>
+
+      {/* Right Controls: Role Simulator Dropdown, Cycle, Theme, Tour, Profile */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* KILLER FEATURE 3: Multi-Role Simulation Switcher Dropdown in Top Navbar */}
+        <div className="relative" ref={roleDropdownRef}>
+          <button
+            onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-indigo-950/80 hover:bg-indigo-900/80 border border-indigo-700/80 rounded-lg text-xs font-bold text-indigo-200 transition-all cursor-pointer shadow-sm"
+            title="Multi-Role Simulation Switcher (Finale Demo)"
+          >
+            <span className="text-sm leading-none">🎭</span>
+            <div className="text-left hidden sm:block">
+              <span className="text-[9px] text-indigo-400 uppercase tracking-wider block leading-none font-mono">Role Persona</span>
+              <span className="truncate max-w-[130px] font-bold text-white block mt-0.5">{currentRole}</span>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
+          </button>
+
+          {roleDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800 mb-1">
+                Multi-Role Simulation Switcher
+              </div>
+
+              {[
+                {
+                  role: 'Sustainability Lead (Admin)',
+                  label: 'Sustainability Lead (Admin)',
+                  desc: 'Full conglomerate governance, reconciliation & filing',
+                  icon: '👑',
+                  badge: 'CSO Lead',
+                },
+                {
+                  role: 'Plant 1 Head (Operations)',
+                  label: 'Plant 1 Head (Operations)',
+                  desc: 'Authorized exclusively for Principle 6 (Energy & Water)',
+                  icon: '🏭',
+                  badge: 'P6 Scoped',
+                },
+                {
+                  role: 'HR Lead',
+                  label: 'HR Lead (Personnel & Wellbeing)',
+                  desc: 'Authorized for Section A & Principle 3 (Wellbeing)',
+                  icon: '👥',
+                  badge: 'HR / P3',
+                },
+                {
+                  role: 'Statutory Auditor',
+                  label: 'Statutory Auditor (ISAE 3000)',
+                  desc: 'Read-only access with digital assurance verification',
+                  icon: '🔍',
+                  badge: 'ISAE 3000',
+                },
+              ].map((item) => (
+                <button
+                  key={item.role}
+                  onClick={() => {
+                    switchDemoRole(item.role as UserRole);
+                    setRoleDropdownOpen(false);
+                  }}
+                  className={`w-full text-left p-2 rounded-lg text-xs transition-colors cursor-pointer flex items-start gap-2.5 ${
+                    currentRole === item.role
+                      ? 'bg-emerald-950/70 border border-emerald-800/80 text-white'
+                      : 'hover:bg-slate-800/80 text-slate-300'
+                  }`}
+                >
+                  <span className="text-base mt-0.5 shrink-0">{item.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold truncate text-white">{item.label}</span>
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">
+                        {item.badge}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 leading-tight mt-0.5">{item.desc}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         {/* Reporting Cycle Selector */}
         <div className="relative" ref={cycleDropdownRef}>
           <button
