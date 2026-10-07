@@ -103,33 +103,33 @@ export const Header: React.FC = () => {
   const isSiteSelectionLocked = currentRole === 'Project Data Entry User';
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 z-50 px-4 flex items-center justify-between shadow-lg shadow-black/20">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 z-50 px-3 xl:px-4 flex items-center justify-between gap-2 xl:gap-3 shadow-lg shadow-black/20">
       {/* Left: MEIL Brand & Site Scoping */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 xl:gap-3 shrink-0">
         <button
           onClick={() => setActiveModule('dashboard')}
-          className="flex items-center gap-3 text-left group focus-visible:outline-none cursor-pointer shrink-0"
+          className="flex items-center gap-2.5 text-left group focus-visible:outline-none cursor-pointer shrink-0"
         >
           {/* Official MEIL Logo */}
           <div className="bg-black/80 px-2 py-1 rounded-lg border border-slate-700/80 shadow-inner flex items-center group-hover:border-slate-500 transition-colors">
-            <MeilLogo height={28} showText={true} />
+            <MeilLogo height={26} showText={true} />
           </div>
-          <div>
+          <div className="hidden sm:block">
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-white tracking-tight text-sm group-hover:text-emerald-400 transition-colors">
-                ESG CONNECT PLATFORM
+              <span className="font-extrabold text-white tracking-tight text-xs xl:text-sm group-hover:text-emerald-400 transition-colors">
+                ESG CONNECT
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 leading-none mt-0.5">
-              Megha Engineering &amp; Infrastructures Ltd · SEBI BRSR
+            <p className="text-[10px] text-slate-400 leading-none mt-0.5">
+              MEIL · SEBI BRSR
             </p>
           </div>
         </button>
 
-        <div className="h-6 w-px bg-slate-800 hidden lg:block" />
+        <div className="h-6 w-px bg-slate-800 hidden md:block shrink-0" />
 
         {/* Global Site / Entity Switcher (Scoped by Active Role) */}
-        <div className="relative" ref={siteDropdownRef}>
+        <div className="relative shrink-0" ref={siteDropdownRef}>
           <button
             onClick={() => {
               if (!isSiteSelectionLocked) {
@@ -137,7 +137,7 @@ export const Header: React.FC = () => {
               }
             }}
             disabled={isSiteSelectionLocked}
-            className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs transition-all max-w-[280px] xl:max-w-[340px] ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 border rounded-lg text-xs transition-all max-w-[190px] xl:max-w-[240px] shrink-0 ${
               isSiteSelectionLocked
                 ? 'bg-slate-950/70 border-slate-800 text-slate-400 cursor-not-allowed'
                 : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700/80 text-slate-200 cursor-pointer'
@@ -149,17 +149,17 @@ export const Header: React.FC = () => {
             }
           >
             <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <div className="truncate text-left">
-              <span className="font-medium text-white">
+            <div className="truncate text-left min-w-0">
+              <span className="font-semibold text-white">
                 {selectedSiteId === 'all'
                   ? currentRole === 'Subsidiary Approver'
-                    ? 'Hydro Subsidiary Sites'
-                    : 'All Scoped Infrastructure Sites'
+                    ? 'Hydro Subsidiary'
+                    : 'All Scoped Sites'
                   : currentSite?.code}
               </span>
               <span className="text-slate-400 text-[11px] ml-1">
                 {selectedSiteId === 'all'
-                  ? `(${scopedSites.length} Sites in Scope)`
+                  ? `(${scopedSites.length})`
                   : `· ${currentSite?.name}`}
               </span>
             </div>
@@ -264,34 +264,19 @@ export const Header: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* User Scope Pill Indicator */}
-        <div className="hidden 2xl:flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/70 border border-slate-800 rounded-lg text-[11px] text-slate-300">
-          <Tag className="w-3 h-3 text-indigo-400 shrink-0" />
-          <span className="text-slate-500 font-mono">Scope:</span>
-          <span className="font-medium text-slate-200 truncate max-w-[200px]" title={userScope.description}>
-            {userScope.projectId
-              ? `Site #042 Polavaram`
-              : userScope.subsidiary
-              ? userScope.subsidiary
-              : userScope.businessUnit
-              ? userScope.businessUnit
-              : 'All MEIL Group'}
-          </span>
-        </div>
       </div>
 
       {/* CENTER: Main Navigation Navbar (The 6 Tabs requested) */}
-      <nav className="hidden lg:flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80 shadow-inner">
+      <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80 shadow-inner shrink-0">
         <button
           onClick={() => setActiveModule('dashboard')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`px-2.5 xl:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
             activeModule === 'dashboard'
               ? 'bg-emerald-600 text-white shadow-sm'
               : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
           }`}
         >
-          <BarChart3 className="w-3.5 h-3.5" />
+          <BarChart3 className="w-3.5 h-3.5 shrink-0" />
           <span>Dashboard</span>
         </button>
 
@@ -300,37 +285,37 @@ export const Header: React.FC = () => {
             setActiveModule('reporting');
             setActiveSubtab('section-c');
           }}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`px-2.5 xl:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
             activeModule === 'reporting'
               ? 'bg-emerald-600 text-white shadow-sm'
               : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
           }`}
         >
-          <FileSpreadsheet className="w-3.5 h-3.5" />
+          <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
           <span>BRSR Portal</span>
         </button>
 
         <button
           onClick={() => setActiveModule('workflow')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`px-2.5 xl:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
             activeModule === 'workflow'
               ? 'bg-emerald-600 text-white shadow-sm'
               : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
           }`}
         >
-          <Users className="w-3.5 h-3.5" />
+          <Users className="w-3.5 h-3.5 shrink-0" />
           <span>Workflow</span>
         </button>
 
         <button
           onClick={() => setActiveModule('validation')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`px-2.5 xl:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
             activeModule === 'validation'
               ? 'bg-emerald-600 text-white shadow-sm'
               : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
           }`}
         >
-          <AlertTriangle className={`w-3.5 h-3.5 ${
+          <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${
             (brsrFormData.sectionC_p3_healthInsurance > brsrFormData.sectionA_employees ||
              (brsrFormData.sectionC_p6_electricityKwhRaw || 0) > 0 ||
              (brsrFormData.sectionC_p6_scope1Mt > 850 * 1.3 && !brsrFormData.sectionC_p6_scope1Justification))
@@ -341,7 +326,7 @@ export const Header: React.FC = () => {
           {(brsrFormData.sectionC_p3_healthInsurance > brsrFormData.sectionA_employees ||
             (brsrFormData.sectionC_p6_electricityKwhRaw || 0) > 0 ||
             (brsrFormData.sectionC_p6_scope1Mt > 850 * 1.3 && !brsrFormData.sectionC_p6_scope1Justification)) && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 font-mono">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 font-mono shrink-0">
               {(brsrFormData.sectionC_p3_healthInsurance > brsrFormData.sectionA_employees ? 1 : 0) +
                ((brsrFormData.sectionC_p6_electricityKwhRaw || 0) > 0 ? 1 : 0) +
                (brsrFormData.sectionC_p6_scope1Mt > 850 * 1.3 && !brsrFormData.sectionC_p6_scope1Justification ? 1 : 0)}
@@ -351,42 +336,42 @@ export const Header: React.FC = () => {
 
         <button
           onClick={() => setActiveModule('audit')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`px-2.5 xl:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
             activeModule === 'audit'
               ? 'bg-emerald-600 text-white shadow-sm'
               : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
           }`}
         >
-          <Paperclip className="w-3.5 h-3.5" />
+          <Paperclip className="w-3.5 h-3.5 shrink-0" />
           <span>Audit &amp; Evidence</span>
         </button>
 
         <button
           onClick={() => setActiveModule('export')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`px-2.5 xl:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
             activeModule === 'export'
               ? 'bg-indigo-600 text-white shadow-sm'
               : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
           }`}
         >
-          <Download className="w-3.5 h-3.5" />
+          <Download className="w-3.5 h-3.5 shrink-0" />
           <span>Generate Report</span>
         </button>
       </nav>
 
       {/* Right Controls: Role Simulator Dropdown, Cycle, Theme, Tour, Profile */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1.5 xl:gap-2.5 shrink-0">
         {/* KILLER FEATURE 3: Multi-Role Simulation Switcher Dropdown in Top Navbar */}
-        <div className="relative" ref={roleDropdownRef}>
+        <div className="relative shrink-0" ref={roleDropdownRef}>
           <button
             onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-indigo-950/80 hover:bg-indigo-900/80 border border-indigo-700/80 rounded-lg text-xs font-bold text-indigo-200 transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-1.5 bg-indigo-950/80 hover:bg-indigo-900/80 border border-indigo-700/80 rounded-lg text-xs font-bold text-indigo-200 transition-all cursor-pointer shadow-sm shrink-0"
             title="Multi-Role Simulation Switcher (Finale Demo)"
           >
-            <span className="text-sm leading-none">🎭</span>
-            <div className="text-left hidden sm:block">
+            <span className="text-sm leading-none shrink-0">🎭</span>
+            <div className="text-left hidden md:block">
               <span className="text-[9px] text-indigo-400 uppercase tracking-wider block leading-none font-mono">Role Persona</span>
-              <span className="truncate max-w-[130px] font-bold text-white block mt-0.5">{currentRole}</span>
+              <span className="truncate max-w-[100px] xl:max-w-[130px] font-bold text-white block mt-0.5">{currentRole}</span>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
           </button>
