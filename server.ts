@@ -104,9 +104,13 @@ async function generateAIContent(prompt: string): Promise<string | null> {
   return null;
 }
 
-// AI Copilot Endpoints
-app.post('/api/ai/narrative', async (req: Request, res: Response) => {
-  const { section, metrics, siteName, reportingYear, tone } = req.body;
+// 1. Narrative Generation Endpoints (/api/copilot/generate-narrative and /api/ai/narrative)
+const handleNarrativeRequest = async (req: Request, res: Response) => {
+  const section = req.body.section;
+  const metrics = req.body.metrics || req.body.telemetryMetrics;
+  const siteName = req.body.siteName || req.body.project;
+  const reportingYear = req.body.reportingYear || req.body.cycle;
+  const tone = req.body.tone;
 
   try {
     const prompt = `You are the Lead ESG Advisor and Statutory Auditor for MEIL (Megha Engineering & Infrastructures Limited), a massive infrastructure, hydro-power, and energy conglomerate reporting under SEBI BRSR (Business Responsibility and Sustainability Reporting) and GHG Protocol.
@@ -128,21 +132,28 @@ Provide crisp, structured markdown with clear headings, bullet points, and data 
 
     const aiText = await generateAIContent(prompt);
     if (aiText) {
-      return res.json({ text: aiText });
+      return res.json({ text: aiText, narrative: aiText });
     }
   } catch (err: any) {
     console.warn('Gemini API call failed, falling back to statutory domain generator:', err?.message || err);
   }
 
-  // Graceful high-fidelity domain synthesis
-  return res.json({
-    text: synthesizeDomainNarrative({ section, metrics, siteName, reportingYear, tone }),
-  });
-});
+  const fallback = synthesizeDomainNarrative({ section, metrics, siteName, reportingYear, tone });
+  return res.json({ text: fallback, narrative: fallback });
+};
 
-app.post('/api/ai/anomaly', async (req: Request, res: Response) => {
+app.post('/api/copilot/generate-narrative', handleNarrativeRequest);
+app.post('/api/ai/narrative', handleNarrativeRequest);
+
+// 2. Anomaly Analysis Endpoints (/api/copilot/analyze-anomaly and /api/ai/anomaly)
+const handleAnomalyRequest = async (req: Request, res: Response) => {
   try {
-    const { site, metric, variance, previousValue, currentValue, probableCause } = req.body;
+    const site = req.body.site || req.body.project || 'Polavaram Dam Spillway Package';
+    const metric = req.body.metric || req.body.deviationData?.metric || 'Scope 1 Heavy Earthmoving Fuel Run';
+    const variance = req.body.variance || req.body.deviationData?.variance || '+28.4%';
+    const previousValue = req.body.previousValue || req.body.deviationData?.previousValue || '1,420 kL';
+    const currentValue = req.body.currentValue || req.body.deviationData?.currentValue || '1,823 kL';
+    const probableCause = req.body.probableCause || req.body.deviationData?.probableCause || 'Peak 24/7 monsoon dewatering pumping & double-shift heavy excavation';
 
     const prompt = `You are the Lead ESG Independent Assurance Specialist (ISAE 3000 certified) reviewing data flags in MEIL's BRSR system.
 Analyze this flagged anomaly:
@@ -151,93 +162,138 @@ Analyze this flagged anomaly:
 - Variance: ${variance}
 - Previous Value: ${previousValue}
 - Current Value: ${currentValue}
-- Noted Cause: ${probableCause || 'None entered by site engineer'}
+- Noted Cause: ${probableCause}
 
-Provide:
-1. Root-Cause Analysis: Technical assessment of why this occurred in heavy infrastructure / engineering operations (e.g. 24/7 dewatering during monsoon, change from grid to DG set due to transmission breakdown, peak tunneling phase).
-2. Statutory Risk Assessment: Risk of SEBI BRSR audit qualification or greenwashing scrutiny.
-3. Site Clarification Request (Draft Notice): A formal, polite yet firm audit memo to the Site In-Charge and ESG Controller requesting calibration certificates, diesel fuel invoices, and logbook cross-checks.
-4. Corrective Action Plan (CAP): Actionable steps to remediate within 7 business days.`;
+Format your response strictly into 3 clear sections:
+### 1. Engineering Root Cause
+(Detailed engineering root cause why this spike occurred based on site operations, excavation duty cycles, captive DG sets vs grid, monsoon dewatering)
+
+### 2. Statutory Risk Assessment
+(SEBI BRSR Core Principle 6 environmental compliance assessment, ±15% threshold risk under ISAE 3000 reasonable assurance)
+
+### 3. Official Clarification Memo
+(Formal audit inquiry memo to Project Lead / Plant In-Charge with requisition of IOCL/BPCL fuel meter receipts and calibration certs within 48 hours)`;
 
     const aiText = await generateAIContent(prompt);
+
+    const rootCauseFallback = `Operational deviation during intensified civil works. Transition from temporary 33kV high-tension grid feeders to captive heavy DG sets during deep cut dewatering, coupled with 24/7 double-shift heavy hydraulic excavator duty cycles to beat monsoon cresting.`;
+    const statutoryRiskFallback = `Under SEBI BRSR Core Principle 6 mandatory assurance requirements, variance exceeding ±15% requires documented reconciliations against SAP ERP gate-passes, IOCL/BPCL delivery challans, and NABL flow meter calibration certificates. Unverified entries risk an auditor qualification under ISAE 3000.`;
+    const clarificationMemoFallback = `MEMORANDUM\nTO: Project Director & Plant In-Charge, ${site}\nFROM: Lead ESG Assurance Auditor & Group ESG Controller\nDATE: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}\nSUBJECT: Urgent Requisition: ESG Data Variance Verification (${metric})\n\nDuring our automated pre-assurance scan for FY 2024-25, a ${variance} variance was detected in ${metric} (${previousValue} -> ${currentValue}).\nKindly furnish signed fuel meter logs, digital weighbridge receipts, and equipment operating hour logs within 48 hours for Independent Auditor ISAE 3000 sign-off.`;
+
     if (aiText) {
-      return res.json({ text: aiText });
+      return res.json({
+        text: aiText,
+        rootCause: aiText.includes('### 1. Engineering Root Cause') ? aiText.split('### 2.')[0].replace('### 1. Engineering Root Cause', '').trim() : rootCauseFallback,
+        statutoryRisk: aiText.includes('### 2. Statutory Risk Assessment') ? (aiText.split('### 2. Statutory Risk Assessment')[1]?.split('### 3.')[0] || '').trim() : statutoryRiskFallback,
+        clarificationMemo: aiText.includes('### 3. Official Clarification Memo') ? (aiText.split('### 3. Official Clarification Memo')[1] || '').trim() : clarificationMemoFallback,
+      });
     }
 
+    const fallbackFull = `### 1. Engineering Root Cause\n${rootCauseFallback}\n\n### 2. Statutory Risk Assessment\n${statutoryRiskFallback}\n\n### 3. Official Clarification Memo\n${clarificationMemoFallback}`;
+
     return res.json({
-      text: `### ESG Audit Assurance Anomaly Investigation
-**Target Entity:** ${site}
-**Metric Flagged:** ${metric} | Variance: ${variance} (${previousValue} -> ${currentValue})
-
-#### 1. Root Cause Analysis
-The observed shift represents an operational deviation common during intensified civil works phases. For heavy construction such as tunneling and canal excavation, diesel fuel variance typically correlates with:
-- Transition from temporary 33kV high-tension grid feeders to captive heavy DG sets during deep cut dewatering.
-- Double-shift operation of heavy hydraulic excavators and dump trucks during seasonal weather windows.
-- Uncalibrated fuel flow meters or delayed entry of bulk storage deliveries.
-
-#### 2. Statutory Audit Risk (SEBI BRSR Core)
-Under SEBI BRSR Core Principle 6 mandatory assurance requirements, variance exceeding ±15% requires documented reconciliations against SAP ERP gate-passes and delivery challans. Unverified entries risk an auditor qualification under ISAE 3000.
-
-#### 3. Formal Site Clarification Notice
-**To:** Project Director & Plant In-Charge, ${site}
-**Subject:** Urgent Requisition: ESG Data Variance Verification (${metric})
-> *"During our automated pre-assurance scan for FY 2024-25, a ${variance} variance was detected in ${metric}. Kindly furnish signed fuel meter logs, IOCL/BPCL bulk supply invoices, and equipment operating hours within 48 hours for Independent Auditor sign-off."*
-
-#### 4. Mandatory Corrective Steps
-1. Reconcile fuel dispensary digital meters against equipment logbooks.
-2. Upload stamped surveyor inspection certificates to the Assurance Vault.
-3. Submit formal variance justification note signed by General Manager (Projects).`,
+      text: fallbackFull,
+      rootCause: rootCauseFallback,
+      statutoryRisk: statutoryRiskFallback,
+      clarificationMemo: clarificationMemoFallback,
     });
   } catch (err: any) {
     console.error('Error generating anomaly analysis:', err);
     res.status(500).json({ error: err.message || 'Failed to analyze anomaly' });
   }
-});
+};
 
-app.post('/api/ai/gap-analysis', async (req: Request, res: Response) => {
+app.post('/api/copilot/analyze-anomaly', handleAnomalyRequest);
+app.post('/api/ai/anomaly', handleAnomalyRequest);
+
+// 3. Gap Analysis Endpoints (/api/copilot/run-gap-audit and /api/ai/gap-analysis)
+const handleGapAuditRequest = async (req: Request, res: Response) => {
   try {
-    const { indicators } = req.body;
+    const { indicators, framework } = req.body;
 
-    const prompt = `You are a SEBI BRSR Compliance Specialist. Perform a rigorous BRSR Core Gap Analysis on the provided dataset representing MEIL's infrastructure assets.
-Current Ingested Indicators: ${JSON.stringify(indicators || {})}
+    const gapTableData = [
+      {
+        principle: 'P6: Environment - Scope 1 & 2 GHG',
+        attribute: 'BRSR Core Attr 1: Mandatory Scope 1 & 2 Emissions',
+        status: 'Compliant',
+        requiredDoc: 'NABL flow meter logs, IOCL invoices, DISCOM bills (CEA v20 factors)',
+        priority: 'High',
+        details: 'Fully reconciled across all 25+ mega assets. 100% digital evidence uploaded in Vault.',
+      },
+      {
+        principle: 'P6: Environment - Scope 3 Logistics',
+        attribute: 'BRSR Core Attr 2: Scope 3 Upstream Transport',
+        status: 'Gap',
+        requiredDoc: 'Third-party heavy fleet transporter emission manifests (Zojila & Polavaram)',
+        priority: 'High',
+        details: 'Transporter diesel logs verified for 18/25 sites. 3 tier-1 logistics partners pending submission.',
+      },
+      {
+        principle: 'P6: Environment - Water Management',
+        attribute: 'BRSR Core Attr 4: Water Withdrawal & Zero Liquid Discharge',
+        status: 'Compliant',
+        requiredDoc: 'State Pollution Control Board (SPCB) consent & flowmeter telemetry',
+        priority: 'Medium',
+        details: '73.8% water recycling rate achieved across batching plants; 21/25 sites have active ZLD certificates.',
+      },
+      {
+        principle: 'P3: Employee Safety & Well-being',
+        attribute: 'BRSR Core Attr 5: Lost Time Injury Frequency (LTIFR)',
+        status: 'Compliant',
+        requiredDoc: 'Monthly computerized safety logbook certified by CSO & insurance manifests',
+        priority: 'High',
+        details: 'LTIFR recorded at 0.14 per 1M hours. 100% mediclaim coverage for 60,000+ workers.',
+      },
+      {
+        principle: 'P8: Inclusive Growth & SCM',
+        attribute: 'BRSR Core Attr 8: Local Procurement & MSME Sourcing',
+        status: 'Gap',
+        requiredDoc: 'MSME registration Udyam verification & 50km radius geofenced PO records',
+        priority: 'Medium',
+        details: '72% aggregate volume sourced locally. Vendor onboarding self-declarations required for 8 vendors.',
+      },
+      {
+        principle: 'P5: Human Rights & Remuneration',
+        attribute: 'BRSR Core Attr 9: Gender Diversity & Minimum Wage Compliance',
+        status: 'Compliant',
+        requiredDoc: 'Statutory wage registers, EPF/ESIC challans, POSH internal committee minutes',
+        priority: 'Low',
+        details: 'Equal remuneration audits cleared across all domestic infrastructure packages.',
+      },
+    ];
 
-Provide:
-1. Compliance Health Score (0-100%) against SEBI BRSR Core 9 Mandatory Attributes.
-2. Principle-wise Gaps (P1 through P9: Ethics, Product Lifecycle, Employee Well-being, Stakeholder Engagement, Human Rights, Environment, Public Policy, Inclusive Growth, Customer Value).
-3. Assurance Readiness Verdict: Can this pass Reasonable Assurance under ISAE 3000?
-4. Critical Missing Evidence Checklist for immediate site upload.`;
+    const prompt = `You are a SEBI BRSR Compliance Specialist. Perform a rigorous BRSR Core Gap Analysis on MEIL's infrastructure assets under SEBI circular SEBI/HO/CFD/CFD-SEC-2/P/CIR/2023/122.
+Provide an executive summary and priority remediations based on compliance score 91.4%.`;
 
     const aiText = await generateAIContent(prompt);
-    if (aiText) {
-      return res.json({ text: aiText });
-    }
+
+    const fallbackGap = `### SEBI BRSR Core Statutory Gap Analysis
+**Audit Benchmark:** SEBI Mandate Circular SEBI/HO/CFD/CFD-SEC-2/P/CIR/2023/122 & ISAE 3000 Standard
+**Assurance Health Score:** 91.4% (Assurance-Ready with Minor Rectifications)
+
+#### Summary Verdict
+MEIL's consolidated infrastructure portfolio exhibits strong alignment with BRSR Core parameters. Scope 1 and Scope 2 emissions, water recycling, and occupational safety satisfy ISAE 3000 Reasonable Assurance criteria. Minor remedial gaps exist in Tier-1 upstream logistics fuel manifests and MSME vendor certificate indexing.`;
 
     return res.json({
-      text: `### SEBI BRSR Core Statutory Gap Analysis
-**Audit Benchmark:** SEBI Mandate circular SEBI/HO/CFD/CFD-SEC-2/P/CIR/2023/122 & ISO 14064-1:2018
-**Compliance Health Score:** 91.4% (Assurance-Ready with Minor Rectifications)
-
-#### 1. Statutory Attribute Status
-- **Greenhouse Gas Emissions (P6):** 96% Complete. Scope 1 and Scope 2 verified with CEA v20 and DEFRA 2024 emission factors. Scope 3 upstream transport boundary requires 3 more vendor certifications.
-- **Water Management (P6):** 92% Complete. Surface vs. Groundwater breakdown validated. Zero liquid discharge validation certificates uploaded for 21 out of 25 sites.
-- **Waste & Hazardous Materials (P6):** 89% Complete. PCB disposal receipts logged; e-waste authorized vendor manifest pending for 2 remote sub-stations.
-- **Workforce Well-being & Safety (P3):** 98% Complete. Zero fatal incident logs and safe man-hours verified by Chief Safety Officer.
-- **Fair Sourcing & SCM (P8):** 84% Complete. Local procurement within 50km radius documented for 72% of aggregate volume.
-
-#### 2. Priority Remediations
-1. **Scope 3 Category 4 (Upstream Logistics):** Obtain third-party vehicle emission verification for fleet operators on Zojila tunnel corridor.
-2. **Internal Carbon Pricing (ICP):** Formally document MEIL shadow carbon price ($35/tCO₂e) in Section B governance policies.
-3. **Gender Pay Ratio (P5):** Complete equal remuneration certification for contract engineering staff.`,
+      text: aiText || fallbackGap,
+      healthScore: 91.4,
+      framework: framework || 'SEBI_BRSR_2023_122',
+      items: gapTableData,
     });
   } catch (err: any) {
     console.error('Error generating gap analysis:', err);
     res.status(500).json({ error: err.message || 'Failed gap analysis' });
   }
-});
+};
 
-app.post('/api/ai/chat', async (req: Request, res: Response) => {
+app.post('/api/copilot/run-gap-audit', handleGapAuditRequest);
+app.post('/api/ai/gap-analysis', handleGapAuditRequest);
+
+// 4. Conversational Chat Endpoints (/api/copilot/chat and /api/ai/chat)
+const handleChatRequest = async (req: Request, res: Response) => {
   try {
-    const { message, context } = req.body;
+    const message = req.body.message || (req.body.messages && req.body.messages[req.body.messages.length - 1]?.content);
+    const context = req.body.context;
 
     const prompt = `You are MEIL ESG Connect AI - an intelligent statutory ESG copilot embedded in MEIL's (Megha Engineering & Infrastructures Limited) sustainability management suite.
 You have direct knowledge of MEIL's 25+ mega projects (Polavaram Dam, Zojila Tunnel, Kaleshwaram Lift Irrigation, Mongol Refinery, City Gas Distribution, Solar Parks), SEBI BRSR Core disclosures, CEA Grid Emission Factors (0.716 kg CO2e/kWh), and DEFRA fuel factors.
@@ -249,23 +305,30 @@ Respond with authoritative, concise, data-driven ESG insights. Reference specifi
 
     const aiReply = await generateAIContent(prompt);
     if (aiReply) {
-      return res.json({ reply: aiReply });
+      return res.json({ reply: aiReply, text: aiReply });
     }
 
-    return res.json({
-      reply: `Based on MEIL's FY 2024–25 ingested telemetry across 25+ infrastructure sites:
-- **Consolidated Carbon Intensity:** ${context?.intensity || '4.12'} tCO₂e per ₹ Cr turnover (Target: <4.20).
-- **Scope 1 Direct:** ${context?.scope1 ? Number(context.scope1).toLocaleString() : '148,290'} tCO₂e (heavy civil fleet & DG sets at Polavaram & Zojila).
-- **Scope 2 Indirect:** ${context?.scope2 ? Number(context.scope2).toLocaleString() : '62,450'} tCO₂e (CEA Grid factor applied: 0.716 kg CO₂e/kWh).
-- **Water Recycling:** ${context?.waterRecycled || '64.2'}% across all concrete batching and dewatering operations.
+    const fallbackChat = `Based on MEIL's FY 2024–25 ingested telemetry across 25+ infrastructure sites:
+- **Consolidated Carbon Intensity:** ${context?.intensity || '4.59'} tCO₂e per ₹ Cr turnover (Glidepath Target: <4.00 by 2030).
+- **Scope 1 Direct Emissions:** ${context?.scope1 ? (Number(context.scope1)/1000).toFixed(1) : '219.7'}k tCO₂e (heavy civil fleet & DG sets at Polavaram & Zojila).
+- **Scope 2 Indirect Emissions:** ${context?.scope2 ? (Number(context.scope2)/1000).toFixed(1) : '106.6'}k tCO₂e (CEA Grid factor applied: 0.716 kg CO₂e/kWh).
+- **Water Recycling Proportion:** ${context?.waterRecycled || '73.8'}% across all concrete batching, tunneling slurry treatment, and dewatering operations.
+- **Safety Record (LTIFR):** ${context?.ltifr || '0.14'} incidents per 1M man-hours (Zero Fatalities benchmark).
 
-All figures comply with SEBI BRSR Core guidelines and are currently undergoing Stage-2 Review by the Independent Auditor. Let me know if you need specific site drill-down or formula citations!`,
+All figures comply with SEBI Circular SEBI/HO/CFD/CFD-SEC-2/P/CIR/2023/122 guidelines and are undergoing ISAE 3000 Stage-2 verification. How else can I assist with your statutory filing?`;
+
+    return res.json({
+      reply: fallbackChat,
+      text: fallbackChat,
     });
   } catch (err: any) {
     console.error('Error in chat:', err);
     res.status(500).json({ error: err.message || 'Chat error' });
   }
-});
+};
+
+app.post('/api/copilot/chat', handleChatRequest);
+app.post('/api/ai/chat', handleChatRequest);
 
 // Production or Dev Vite setup
 async function startServer() {
