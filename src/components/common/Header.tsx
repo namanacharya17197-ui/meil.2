@@ -21,11 +21,6 @@ import {
   Moon,
   Lock,
   Tag,
-  BarChart3,
-  FileSpreadsheet,
-  Users,
-  Paperclip,
-  Download,
 } from 'lucide-react';
 
 const REPORTING_CYCLES: ReportingCycle[] = [
@@ -54,20 +49,16 @@ export const Header: React.FC = () => {
     logout,
     theme,
     toggleTheme,
-    brsrFormData,
-    switchDemoRole,
   } = useEsg();
 
   const [siteDropdownOpen, setSiteDropdownOpen] = useState(false);
   const [siteSearch, setSiteSearch] = useState('');
   const [cycleDropdownOpen, setCycleDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
   const siteDropdownRef = useRef<HTMLDivElement>(null);
   const cycleDropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
-  const roleDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -79,9 +70,6 @@ export const Header: React.FC = () => {
       }
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
         setProfileDropdownOpen(false);
-      }
-      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target as Node)) {
-        setRoleDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -259,179 +247,8 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* CENTER: Main Navigation Navbar (The 6 Tabs requested) */}
-      <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 bg-slate-950/80 p-0.5 xl:p-1 rounded-xl border border-slate-800/80 shadow-inner shrink-0">
-        <button
-          onClick={() => setActiveModule('dashboard')}
-          className={`px-2 xl:px-2.5 py-1 rounded-lg text-[11px] xl:text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-            activeModule === 'dashboard'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-        >
-          <BarChart3 className="w-3.5 h-3.5 shrink-0" />
-          <span>Dashboard</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveModule('reporting');
-            setActiveSubtab('section-c');
-          }}
-          className={`px-2 xl:px-2.5 py-1 rounded-lg text-[11px] xl:text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-            activeModule === 'reporting'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
-          <span>BRSR Portal</span>
-        </button>
-
-        <button
-          onClick={() => setActiveModule('workflow')}
-          className={`px-2 xl:px-2.5 py-1 rounded-lg text-[11px] xl:text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-            activeModule === 'workflow'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-        >
-          <Users className="w-3.5 h-3.5 shrink-0" />
-          <span>Workflow</span>
-        </button>
-
-        <button
-          onClick={() => setActiveModule('validation')}
-          className={`px-2 xl:px-2.5 py-1 rounded-lg text-[11px] xl:text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-            activeModule === 'validation'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-        >
-          <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${
-            (brsrFormData.sectionC_p3_healthInsurance > brsrFormData.sectionA_employees ||
-             (brsrFormData.sectionC_p6_electricityKwhRaw || 0) > 0 ||
-             (brsrFormData.sectionC_p6_scope1Mt > 850 * 1.3 && !brsrFormData.sectionC_p6_scope1Justification))
-              ? 'text-amber-400'
-              : ''
-          }`} />
-          <span>Validation</span>
-          {(brsrFormData.sectionC_p3_healthInsurance > brsrFormData.sectionA_employees ||
-            (brsrFormData.sectionC_p6_electricityKwhRaw || 0) > 0 ||
-            (brsrFormData.sectionC_p6_scope1Mt > 850 * 1.3 && !brsrFormData.sectionC_p6_scope1Justification)) && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 font-mono shrink-0">
-              {(brsrFormData.sectionC_p3_healthInsurance > brsrFormData.sectionA_employees ? 1 : 0) +
-               ((brsrFormData.sectionC_p6_electricityKwhRaw || 0) > 0 ? 1 : 0) +
-               (brsrFormData.sectionC_p6_scope1Mt > 850 * 1.3 && !brsrFormData.sectionC_p6_scope1Justification ? 1 : 0)}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveModule('audit')}
-          className={`px-2 xl:px-2.5 py-1 rounded-lg text-[11px] xl:text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-            activeModule === 'audit'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-        >
-          <Paperclip className="w-3.5 h-3.5 shrink-0" />
-          <span>Audit &amp; Evidence</span>
-        </button>
-
-        <button
-          onClick={() => setActiveModule('export')}
-          className={`px-2 xl:px-2.5 py-1 rounded-lg text-[11px] xl:text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-            activeModule === 'export'
-              ? 'bg-indigo-600 text-white shadow-sm'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-        >
-          <Download className="w-3.5 h-3.5 shrink-0" />
-          <span>Generate Report</span>
-        </button>
-      </nav>
-
-      {/* Right Controls: Role Simulator Dropdown, Cycle, Theme, Tour, Profile */}
+      {/* Right Controls: Cycle, Alerts, Theme, Tour, Profile */}
       <div className="flex items-center gap-1.5 xl:gap-2.5 shrink-0">
-        {/* KILLER FEATURE 3: Multi-Role Simulation Switcher Dropdown in Top Navbar */}
-        <div className="relative shrink-0" ref={roleDropdownRef}>
-          <button
-            onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-            className="flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-1.5 bg-indigo-950/80 hover:bg-indigo-900/80 border border-indigo-700/80 rounded-lg text-xs font-bold text-indigo-200 transition-all cursor-pointer shadow-sm shrink-0"
-            title="Multi-Role Simulation Switcher (Finale Demo)"
-          >
-            <span className="text-sm leading-none shrink-0">🎭</span>
-            <div className="text-left hidden md:block">
-              <span className="text-[9px] text-indigo-400 uppercase tracking-wider block leading-none font-mono">Role Persona</span>
-              <span className="truncate max-w-[100px] xl:max-w-[130px] font-bold text-white block mt-0.5">{currentRole}</span>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
-          </button>
-
-          {roleDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800 mb-1">
-                Multi-Role Simulation Switcher
-              </div>
-
-              {[
-                {
-                  role: 'Sustainability Lead (Admin)',
-                  label: 'Sustainability Lead (Admin)',
-                  desc: 'Full conglomerate governance, reconciliation & filing',
-                  icon: '👑',
-                  badge: 'CSO Lead',
-                },
-                {
-                  role: 'Plant 1 Head (Operations)',
-                  label: 'Plant 1 Head (Operations)',
-                  desc: 'Authorized exclusively for Principle 6 (Energy & Water)',
-                  icon: '🏭',
-                  badge: 'P6 Scoped',
-                },
-                {
-                  role: 'HR Lead',
-                  label: 'HR Lead (Personnel & Wellbeing)',
-                  desc: 'Authorized for Section A & Principle 3 (Wellbeing)',
-                  icon: '👥',
-                  badge: 'HR / P3',
-                },
-                {
-                  role: 'Statutory Auditor',
-                  label: 'Statutory Auditor (ISAE 3000)',
-                  desc: 'Read-only access with digital assurance verification',
-                  icon: '🔍',
-                  badge: 'ISAE 3000',
-                },
-              ].map((item) => (
-                <button
-                  key={item.role}
-                  onClick={() => {
-                    switchDemoRole(item.role as UserRole);
-                    setRoleDropdownOpen(false);
-                  }}
-                  className={`w-full text-left p-2 rounded-lg text-xs transition-colors cursor-pointer flex items-start gap-2.5 ${
-                    currentRole === item.role
-                      ? 'bg-emerald-950/70 border border-emerald-800/80 text-white'
-                      : 'hover:bg-slate-800/80 text-slate-300'
-                  }`}
-                >
-                  <span className="text-base mt-0.5 shrink-0">{item.icon}</span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold truncate text-white">{item.label}</span>
-                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">
-                        {item.badge}
-                      </span>
-                    </div>
-                    <div className="text-[10px] text-slate-400 leading-tight mt-0.5">{item.desc}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
         {/* Reporting Cycle Selector */}
         <div className="relative" ref={cycleDropdownRef}>
           <button

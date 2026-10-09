@@ -8,7 +8,6 @@ import {
   FileText,
   Users,
   Factory,
-  ArrowRight,
   TrendingUp,
   Clock,
   Sparkles,
@@ -112,8 +111,8 @@ export const BrsrExecutiveDashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* 4 Executive KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Executive KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* KPI 1: Overall BRSR Completion */}
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
@@ -215,33 +214,6 @@ export const BrsrExecutiveDashboardView: React.FC = () => {
               className="text-amber-400 hover:underline font-semibold cursor-pointer"
             >
               Resolve Now &rarr;
-            </button>
-          </div>
-        </div>
-
-        {/* KPI 4: Filing Status & Export */}
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              SEBI Statutory Filing
-            </span>
-            <span className="p-2 bg-indigo-950 text-indigo-400 rounded-lg">
-              <Download className="w-4 h-4" />
-            </span>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-xl font-extrabold text-white">Pre-Filing Review</span>
-          </div>
-          <p className="text-xs text-slate-400 mt-2">
-            SEBI Top-1000 Listed Format (CIN: U45202TG2006PLC050271)
-          </p>
-          <div className="mt-3">
-            <button
-              onClick={() => setActiveModule('export')}
-              className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-            >
-              <span>1-Click SEBI Export (PDF/Excel)</span>
-              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

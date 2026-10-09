@@ -24,7 +24,6 @@ import {
 import { SignedWeighbridgeModal, WeighbridgeRecord } from './SignedWeighbridgeModal';
 import { syncWeighbridgeToCloud, isSupabaseConfigured } from '../../../lib/supabase';
 import { ScopeEmissionsLogger } from './ScopeEmissionsLogger';
-import { Calculator } from 'lucide-react';
 
 export const DataCollectionView: React.FC = () => {
   const {
@@ -257,20 +256,9 @@ export const DataCollectionView: React.FC = () => {
           {/* Subtab Segmented Switcher */}
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs flex-wrap">
             <button
-              onClick={() => setActiveSubtab('scope-calculator')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold transition-colors ${
-                activeSubtab === 'scope-calculator' || (!['quick-entry', 'section-a', 'section-b', 'section-c'].includes(activeSubtab))
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Calculator className="w-3.5 h-3.5" />
-              <span>Scope 1, 2, 3 Calculator</span>
-            </button>
-            <button
               onClick={() => setActiveSubtab('quick-entry')}
-              className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
-                activeSubtab === 'quick-entry'
+              className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
+                activeSubtab === 'quick-entry' || (!['section-a', 'section-b', 'section-c'].includes(activeSubtab))
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
@@ -307,27 +295,12 @@ export const DataCollectionView: React.FC = () => {
             >
               Section C: P1-P9
             </button>
-            <button
-              onClick={() => {
-                setActiveModule('calculator');
-                setActiveSubtab('decarbonization-simulator');
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-emerald-400 hover:text-emerald-300 hover:bg-slate-800 transition-colors border border-emerald-900/80 bg-emerald-950/40"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>ESG Calculator Hub (5 Tools) →</span>
-            </button>
           </div>
         </div>
       </div>
 
-      {/* FEATURE 1: MODULAR SCOPE 1, 2, 3 EMISSION TRACKING & CALCULATOR */}
-      {(activeSubtab === 'scope-calculator' || !['quick-entry', 'section-a', 'section-b', 'section-c'].includes(activeSubtab)) && (
-        <ScopeEmissionsLogger />
-      )}
-
       {/* QUICK-ENTRY SPREADSHEET */}
-      {activeSubtab === 'quick-entry' && (
+      {(activeSubtab === 'quick-entry' || !['section-a', 'section-b', 'section-c'].includes(activeSubtab)) && (
         <div className="space-y-6">
           {/* Quick-Entry Form Bar */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
